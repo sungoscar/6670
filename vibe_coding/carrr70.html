@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransitQ — 交通工具即時排隊資訊分享平台</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================= CSS Variables & Base Styles ================= */
+        :root {
+            --bg-color: #F7F7F5;
+            --text-main: #1A1A1A;
+            --text-muted: #666666;
+            --primary: #FF5F1F;
+            --primary-hover: #E04D14;
+            --card-bg: #FFFFFF;
+            --border-radius: 12px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --grid-line: rgba(0, 0, 0, 0.03);
+            --error: #D32F2F;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            /* Subtle Grid Texture */
+            background-image: 
+                linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+            background-size: 24px 24px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--text-main);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: var(--card-bg);
+            transition: var(--transition);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 95, 31, 0.1);
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            height: 20px;
+        }
+
+        /* ================= Layout & Views ================= */
+        .view {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 0.4s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+            min-height: 100vh;
+            padding-bottom: 80px; /* Space for FAB */
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ================= Navbar ================= */
+        .navbar {
+            background: var(--card-bg);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+            color: var(--primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-profile-btn {
+            font-weight: 500;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            transition: var(--transition);
+        }
+
+        .user-profile-btn:hover { background: #e0e0e0; }
+        
+        .logout-btn {
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .logout-btn:hover { color: var(--error); transform: none; }
+
+        /* ================= Auth Page ================= */
+        .auth-container {
+            max-width: 400px;
+            margin: 10vh auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: -2px;
+        }
+
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        
+        .guest-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= Region Selection ================= */
+        .region-header {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .region-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .region-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        .region-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        /* ================= Feed & Post Cards ================= */
+        .region-filters {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 16px 0;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+        .region-filters::-webkit-scrollbar { display: none; }
+
+        .filter-pill {
+            padding: 8px 16px;
+            border-radius: 24px;
+            background: #EAEAEA;
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-pill.active, .filter-pill:hover {
+            background: var(--text-main);
+            color: #fff;
+        }
+
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .post-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .post-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .author-info { display: flex; align-items: center; gap: 12px; }
+        .author-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: var(--text-muted);
+        }
+        .author-meta { display: flex; flex-direction: column; }
+        .author-name { font-weight: 700; font-size: 1rem; }
+        .author-id { font-size: 0.8rem; color: var(--text-muted); }
+        .post-region-badge {
+            background: rgba(255, 95, 31, 0.1);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .post-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .post-content {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        
+        .post-content-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .post-content-text.expanded {
+            -webkit-line-clamp: unset;
+        }
+        .more-toggle {
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: none; /* JS will show if needed */
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .post-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .action-btn {
+            background: transparent;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        .action-btn:hover { color: var(--primary); transform: none; }
+        .action-btn.liked { color: var(--primary); }
+
+        .delete-btn {
+            background: transparent;
+            color: #ccc;
+            font-size: 1.1rem;
+            margin-left: 8px;
+            transition: var(--transition);
+        }
+        .delete-btn:hover {
+            color: var(--error);
+            transform: scale(1.1);
+        }
+        
+        .post-time { font-size: 0.85rem; color: #999; }
+
+        /* ================= Comments System ================= */
+        .comments-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed #eee;
+            display: none; /* Toggled by JS */
+            animation: slideDownFade 0.3s ease-out;
+        }
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comment-item {
+            margin-bottom: 12px;
+            background: #F9F9F9;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+        .comment-author { font-weight: 700; }
+        .comment-text { font-size: 0.95rem; color: var(--text-main); }
+        
+        .comment-input-area { display: flex; gap: 8px; margin-top: 12px; }
+        .comment-input-area input { margin: 0; flex: 1; }
+        .comment-input-area button { padding: 8px 16px; width: auto; }
+
+        .guest-comment-msg {
+            text-align: center;
+            padding: 16px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= Floating Action Button ================= */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 16px rgba(255, 95, 31, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 90;
+        }
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            background: var(--primary-hover);
+        }
+        .fab.hidden { display: none; }
+
+        /* ================= New Post Page ================= */
+        .back-btn {
+            background: transparent;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .back-btn:hover { transform: translateX(-4px); }
+        
+        .post-form-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: #eee;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        #image-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* ================= Modals ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-card h3 { margin-bottom: 16px; font-size: 1.25rem; }
+        .modal-card p { margin-bottom: 24px; color: var(--text-muted); }
+        .modal-actions { display: flex; gap: 12px; flex-direction: column; }
+        
+        /* Lightbox */
+        #lightbox-modal .modal-card { max-width: 90vw; max-height: 90vh; background: transparent; box-shadow: none; padding: 0; }
+        #lightbox-img { max-width: 100%; max-height: 90vh; border-radius: 8px; object-fit: contain; }
+
+        /* ================= Profile Page ================= */
+        .profile-header {
+            text-align: center;
+            padding: 40px 0;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+        .profile-avatar-large {
+            width: 80px; height: 80px;
+            border-radius: 50%; background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 700; margin: 0 auto 16px auto;
+        }
+
+        @media (max-width: 600px) {
+            .post-card { padding: 16px; }
+            .container { padding: 12px; }
+        }
+
+        /* ================= CAPTCHA 2FA ================= */
+        .captcha-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .captcha-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .captcha-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+            animation: captchaSlideIn 0.4s forwards;
+        }
+        @keyframes captchaSlideIn {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .captcha-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .captcha-header .captcha-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        .captcha-header h3 {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+        .captcha-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .captcha-header p strong {
+            color: var(--primary);
+        }
+        .captcha-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .captcha-tile {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border: 3px solid transparent;
+            user-select: none;
+        }
+        .captcha-tile:hover {
+            transform: scale(1.06);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .captcha-tile:active {
+            transform: scale(0.96);
+        }
+        .captcha-tile .tile-emoji {
+            font-size: 2.6rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            transition: transform 0.2s;
+            z-index: 1;
+        }
+        .captcha-tile:hover .tile-emoji {
+            transform: scale(1.12);
+        }
+        .captcha-tile .tile-check {
+            position: absolute;
+            top: 5px; right: 5px;
+            width: 22px; height: 22px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(255, 95, 31, 0.5);
+            z-index: 2;
+        }
+        @keyframes checkPop {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        .captcha-tile.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 95, 31, 0.25), 0 4px 12px rgba(255, 95, 31, 0.15);
+        }
+        .captcha-tile.selected .tile-check {
+            display: flex;
+            animation: checkPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .captcha-tile.selected .tile-emoji {
+            transform: scale(0.92);
+        }
+        .captcha-error-msg {
+            color: var(--error);
+            font-size: 0.85rem;
+            text-align: center;
+            min-height: 20px;
+            margin-bottom: 8px;
+        }
+        .captcha-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .captcha-actions .btn {
+            flex: 1;
+        }
+        .captcha-footer {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+        .captcha-refresh {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .captcha-refresh:hover {
+            text-decoration: underline;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+        .captcha-card.shake {
+            animation: shake 0.45s ease;
+        }
+        .captcha-card.success {
+            animation: captchaSuccess 0.5s ease forwards;
+        }
+        @keyframes captchaSuccess {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.03); }
+            100% { transform: scale(0.95); opacity: 0; }
+        }
+        .captcha-progress {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .captcha-progress-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: background 0.3s;
+        }
+        .captcha-progress-dot.filled {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar" id="main-nav" style="display: none;">
+        <div class="logo">TransitQ</div>
+        <div class="nav-right" id="nav-user-area">
+            <!-- Injected by JS -->
+        </div>
+    </nav>
+
+    <!-- ================= VIEW 1: AUTH ================= -->
+    <div id="auth-view" class="view">
+        <div class="auth-container">
+            <h2 style="text-align: center; margin-bottom: 24px; color: var(--primary);">TransitQ</h2>
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">登入</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">註冊</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+                <input type="text" id="login-id" class="mono" placeholder="用戶ID (例: user123)" required>
+                <input type="password" id="login-pwd" placeholder="密碼" required>
+                <div id="login-error" class="error-msg"></div>
+                <button type="submit" class="btn">登入</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+                <input type="text" id="reg-id" class="mono" placeholder="用戶ID (唯一，無空白)" required pattern="^\S+$" title="不能包含空白字元">
+                <input type="text" id="reg-name" placeholder="顯示名稱" required>
+                <input type="password" id="reg-pwd" placeholder="密碼" required>
+                <input type="password" id="reg-pwd2" placeholder="確認密碼" required>
+                <div id="reg-error" class="error-msg"></div>
+                <button type="submit" class="btn">註冊</button>
+            </form>
+
+            <a class="guest-link" onclick="continueAsGuest()">以訪客身分瀏覽 →</a>
+        </div>
+    </div>
+
+    <!-- ================= VIEW 2: REGION SELECTION ================= -->
+    <div id="region-view" class="view container">
+        <div class="region-header">
+            <h2 id="region-welcome-msg">您好！請選擇您目前的地區</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">這將幫助我們為您顯示最相關的排隊資訊</p>
+        </div>
+        <div class="region-grid" id="region-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- ================= VIEW 3: MAIN FEED ================= -->
+    <div id="feed-view" class="view container">
+        <div class="region-filters" id="feed-filters">
+            <div class="filter-pill active" onclick="setFeedFilter('All')">全部</div>
+            <!-- Populated by JS -->
+        </div>
+        <div class="post-list" id="feed-post-list">
+            <!-- Posts injected by JS -->
+        </div>
+    </div>
+
+    <!-- ================= VIEW 4: NEW POST ================= -->
+    <div id="new-post-view" class="view container">
+        <button class="back-btn" onclick="navigate('feed-view')">← 返回分享區</button>
+        <div class="post-form-card">
+            <h2 style="margin-bottom: 16px;">撰寫新貼文</h2>
+            <div class="user-badge" id="new-post-author"></div>
+            
+            <form id="new-post-form" onsubmit="handleNewPost(event)">
+                <select id="post-region" required>
+                    <option value="" disabled selected>選擇發布地區...</option>
+                    <!-- Populated by JS -->
+                </select>
+                <input type="text" id="post-title" placeholder="發布主題 (例：台中市 烏日區 - 公車排隊情況)" required>
+                <textarea id="post-content" rows="5" placeholder="描述目前的排隊狀況... (排隊人數、移動速度等)" required></textarea>
+                
+                <input type="file" id="post-image" accept="image/*" style="margin-bottom: 16px;" onchange="previewImage(event)">
+                <img id="image-preview" src="" alt="預覽圖">
+                
+                <button type="submit" class="btn" style="margin-top: 8px;">發布貼文</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= VIEW 5: PROFILE ================= -->
+    <div id="profile-view" class="view container">
+        <button class="back-btn" onclick="navigate('feed-view')">← 返回分享區</button>
+        <div class="profile-header">
+            <div class="profile-avatar-large" id="profile-avatar"></div>
+            <h2 id="profile-name"></h2>
+            <p class="mono" id="profile-id" style="color: var(--text-muted); margin: 8px 0;"></p>
+            <p id="profile-region" style="font-weight: 500;"></p>
+        </div>
+        <h3 style="margin-bottom: 20px;">我的貼文</h3>
+        <div class="post-list" id="profile-post-list">
+            <!-- Posts injected by JS -->
+        </div>
+    </div>
+
+    <!-- ================= FAB (New Post) ================= -->
+    <div class="fab" id="fab-btn" onclick="navigate('new-post-view')">＋</div>
+
+    <!-- ================= MODALS ================= -->
+    <!-- Guest Auth Prompt Modal -->
+    <div class="modal-overlay" id="auth-modal" onclick="closeModal('auth-modal', event)">
+        <div class="modal-card">
+            <h3>您尚未登入</h3>
+            <p>是否已有 TransitQ 平台帳號？登入後即可按讚與留言！</p>
+            <div class="modal-actions">
+                <button class="btn" onclick="logoutAndGoToAuth('login')">前往登入</button>
+                <button class="btn btn-outline" onclick="logoutAndGoToAuth('register')">前往註冊</button>
+                <button class="btn btn-outline" style="border: none;" onclick="closeModal('auth-modal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div class="modal-overlay" id="lightbox-modal" onclick="closeModal('lightbox-modal', event)">
+        <div class="modal-card" style="padding: 0;">
+            <img id="lightbox-img" src="" alt="Full size image">
+        </div>
+    </div>
+
+    <!-- CAPTCHA 2FA Modal -->
+    <div class="captcha-overlay" id="captcha-modal">
+        <div class="captcha-card" id="captcha-card">
+            <div class="captcha-header">
+                <div class="captcha-icon">🛡️</div>
+                <h3>安全驗證</h3>
+                <p>請選取所有包含 <strong>交通工具</strong> 的圖片</p>
+            </div>
+            <div class="captcha-grid" id="captcha-grid">
+                <!-- Grid items generated by JS -->
+            </div>
+            <div id="captcha-error" class="captcha-error-msg"></div>
+            <div class="captcha-actions">
+                <button class="btn btn-outline" onclick="closeCaptcha()">取消</button>
+                <button class="btn" onclick="verifyCaptcha()">驗證</button>
+            </div>
+            <div class="captcha-footer">
+                <span class="captcha-refresh" onclick="generateCaptcha()">更換圖片 ↻</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ================= Core Data & Config ================= */
+        const REGIONS = ['台北市', '新北市', '桃園市', '台中市', '台南市', '高雄市', '新竹市', '嘉義市'];
+        const REGION_ICONS = ['🚇', '🚌', '✈️', '🚄', '🛵', '🛳️', '🚈', '🚲'];
+        
+        let state = {
+            currentView: 'auth-view',
+            currentUser: null,
+            feedFilter: 'All',
+            pendingUser: null
+        };
+
+        /* ================= CAPTCHA Logic ================= */
+        const CAPTCHA_ITEMS = [
+            { id: 'bus', emoji: '🚌', isVehicle: true, color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)' },
+            { id: 'taxi', emoji: '🚕', isVehicle: true, color: 'linear-gradient(120deg, #f6d365 0%, #fda085 100%)' },
+            { id: 'train', emoji: '🚄', isVehicle: true, color: 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)' },
+            { id: 'bike', emoji: '🚲', isVehicle: true, color: 'linear-gradient(to top, #0ba360 0%, #3cba92 100%)' },
+            { id: 'scooter', emoji: '🛵', isVehicle: true, color: 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)' },
+            { id: 'car', emoji: '🚗', isVehicle: true, color: 'linear-gradient(to right, #fa709a 0%, #fee140 100%)' },
+            { id: 'dog', emoji: '🐕', isVehicle: false, color: 'linear-gradient(to top, #d299c2 0%, #fef9d7 100%)' },
+            { id: 'cat', emoji: '🐈', isVehicle: false, color: 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' },
+            { id: 'tree', emoji: '🌳', isVehicle: false, color: 'linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)' },
+            { id: 'house', emoji: '🏠', isVehicle: false, color: 'linear-gradient(to right, #eea2a2 0%, #bbc1bf 19%, #57c6e1 42%, #b49fda 79%, #7ac5d8 100%)' },
+            { id: 'burger', emoji: '🍔', isVehicle: false, color: 'linear-gradient(to top, #ff0844 0%, #ffb199 100%)' },
+            { id: 'coffee', emoji: '☕', isVehicle: false, color: 'linear-gradient(to right, #b8cbb8 0%, #b8cbb8 0%, #b465da 0%, #cf6cc9 33%, #ee609c 66%, #ee609c 100%)' },
+            { id: 'book', emoji: '📚', isVehicle: false, color: 'linear-gradient(to top, #96fbc4 0%, #f9f586 100%)' },
+            { id: 'apple', emoji: '🍎', isVehicle: false, color: 'linear-gradient(to right, #ffecd2 0%, #fcb69f 100%)' },
+            { id: 'cloud', emoji: '☁️', isVehicle: false, color: 'linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%)' }
+        ];
+
+        let captchaTargetIndices = [];
+        let captchaSelectedIndices = new Set();
+
+        function showCaptcha(user) {
+            state.pendingUser = user;
+            generateCaptcha();
+            document.getElementById('captcha-modal').classList.add('active');
+            document.getElementById('captcha-card').classList.remove('success');
+        }
+
+        function closeCaptcha() {
+            document.getElementById('captcha-modal').classList.remove('active');
+            state.pendingUser = null;
+        }
+
+        function generateCaptcha() {
+            const grid = document.getElementById('captcha-grid');
+            grid.innerHTML = '';
+            captchaSelectedIndices.clear();
+            document.getElementById('captcha-error').innerText = '';
+            
+            // Randomly pick 9 items, ensuring at least 3 vehicles
+            let vehicles = CAPTCHA_ITEMS.filter(item => item.isVehicle).sort(() => 0.5 - Math.random());
+            let nonVehicles = CAPTCHA_ITEMS.filter(item => !item.isVehicle).sort(() => 0.5 - Math.random());
+            
+            let numVehicles = Math.floor(Math.random() * 3) + 3; // 3 to 5 vehicles
+            let selectedItems = vehicles.slice(0, numVehicles).concat(nonVehicles.slice(0, 9 - numVehicles));
+            selectedItems.sort(() => 0.5 - Math.random()); // Shuffle again
+
+            captchaTargetIndices = [];
+            selectedItems.forEach((item, index) => {
+                if (item.isVehicle) captchaTargetIndices.push(index);
+                
+                const tile = document.createElement('div');
+                tile.className = 'captcha-tile';
+                tile.style.background = item.color;
+                tile.innerHTML = `
+                    <div class="tile-emoji">${item.emoji}</div>
+                    <div class="tile-check">✓</div>
+                `;
+                tile.onclick = () => toggleCaptchaTile(index, tile);
+                grid.appendChild(tile);
+            });
+        }
+
+        function toggleCaptchaTile(index, tileElement) {
+            if (captchaSelectedIndices.has(index)) {
+                captchaSelectedIndices.delete(index);
+                tileElement.classList.remove('selected');
+            } else {
+                captchaSelectedIndices.add(index);
+                tileElement.classList.add('selected');
+            }
+            document.getElementById('captcha-error').innerText = '';
+        }
+
+        function verifyCaptcha() {
+            const errDiv = document.getElementById('captcha-error');
+            const card = document.getElementById('captcha-card');
+            
+            if (captchaSelectedIndices.size === 0) {
+                errDiv.innerText = "請選取至少一張圖片";
+                triggerShake(card);
+                return;
+            }
+
+            let isCorrect = true;
+            if (captchaSelectedIndices.size !== captchaTargetIndices.length) {
+                isCorrect = false;
+            } else {
+                for (let idx of captchaTargetIndices) {
+                    if (!captchaSelectedIndices.has(idx)) {
+                        isCorrect = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                card.classList.add('success');
+                setTimeout(() => {
+                    const userToLogin = state.pendingUser;
+                    closeCaptcha();
+                    if (userToLogin) {
+                        loginUser(userToLogin);
+                    }
+                }, 500);
+            } else {
+                errDiv.innerText = "驗證失敗，請再試一次";
+                triggerShake(card);
+                setTimeout(generateCaptcha, 600); // Generate a new one after failure
+            }
+        }
+
+        function triggerShake(element) {
+            element.classList.remove('shake');
+            void element.offsetWidth; // trigger reflow
+            element.classList.add('shake');
+        }
+
+        // LocalStorage Helpers
+        const db = {
+            get: (key) => JSON.parse(localStorage.getItem(key)) || null,
+            set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+            init: () => {
+                if (!db.get('users')) db.set('users', []);
+                if (!db.get('posts')) db.set('posts', []);
+                if (!db.get('comments')) db.set('comments', []);
+                seedData();
+            }
+        };
+
+        // Seed Data
+        function seedData() {
+            let users = db.get('users');
+            if (users.length === 0) {
+                const seedUsers = [
+                    { id: "transit_tom", name: "捷運湯姆", password: "123", region: "台北市", createdAt: Date.now() },
+                    { id: "bus_bella", name: "公車貝拉", password: "123", region: "台中市", createdAt: Date.now() },
+                    { id: "hsr_hana", name: "高鐵花奈", password: "123", region: "高雄市", createdAt: Date.now() }
+                ];
+                db.set('users', seedUsers);
+
+                const now = Date.now();
+                const hr = 60 * 60 * 1000;
+                const seedPosts = [
+                    { postId: "p1", authorId: "transit_tom", authorName: "捷運湯姆", region: "台北市", title: "台北車站高鐵售票處 排隊狀況", content: "目前自動售票機排隊人潮大約有20人左右，移動速度緩慢，建議趕時間的旅客直接使用手機App購票進站！", imageBase64: "", likes: ["bus_bella"], createdAt: now - (2 * hr) },
+                    { postId: "p2", authorId: "bus_bella", authorName: "公車貝拉", region: "台中市", title: "台灣大道 300路公車 (科博館站)", content: "下班尖峰時刻，目前候車亭已經擠滿人了，剛剛連續兩班都客滿上不去，建議大家改搭其他替代路線或稍晚再出門。", imageBase64: "", likes: ["transit_tom", "hsr_hana"], createdAt: now - (5 * 60 * 1000) },
+                    { postId: "p3", authorId: "hsr_hana", authorName: "高鐵花奈", region: "高雄市", title: "世運主場館演場會散場 - 捷運紅線", content: "演唱會剛結束，目前世運站外面排隊進站的人龍已經排到馬路上了。高捷有加開班次，站務人員引導順暢，大概排20分鐘可以進站。", imageBase64: "", likes: [], createdAt: now - (24 * hr) },
+                    { postId: "p4", authorId: "transit_tom", authorName: "捷運湯姆", region: "新北市", title: "板橋客運站 返鄉人潮", content: "往南部的客運幾乎班班客滿，現場候補可能要等超過一小時。請大家提早線上買票。", imageBase64: "", likes: [], createdAt: now - (15 * 60 * 1000) },
+                    { postId: "p5", authorId: "bus_bella", authorName: "公車貝拉", region: "台中市", title: "高鐵台中站 計程車排隊", content: "一樓計程車排隊區目前約有50人，不過車輛來得很快，消化速度不錯，預計等候10分鐘內可以上車。", imageBase64: "", likes: ["hsr_hana"], createdAt: now - (3 * hr) }
+                ];
+                db.set('posts', seedPosts);
+                
+                const seedComments = [
+                    { commentId: "c1", postId: "p2", authorId: "transit_tom", authorName: "捷運湯姆", content: "辛苦了！300路尖峰時間真的超難擠上去。", createdAt: now - (2 * 60 * 1000) }
+                ];
+                db.set('comments', seedComments);
+            }
+        }
+
+        /* ================= Utils ================= */
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        
+        function formatRelativeTime(timestamp) {
+            const diff = Date.now() - timestamp;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return '剛剛';
+            if (mins < 60) return `${mins} 分鐘前`;
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return `${hrs} 小時前`;
+            return `${Math.floor(hrs / 24)} 天前`;
+        }
+
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        /* ================= Navigation & Lifecycle ================= */
+        function initApp() {
+            db.init();
+            state.currentUser = db.get('currentUser');
+            buildRegionUI();
+            
+            if (state.currentUser) {
+                if (state.currentUser.region) {
+                    navigate('feed-view');
+                } else {
+                    navigate('region-view');
+                }
+            } else {
+                navigate('auth-view');
+            }
+        }
+
+        function navigate(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            state.currentView = viewId;
+            window.scrollTo(0,0);
+
+            // Update Navbar Visibility
+            const nav = document.getElementById('main-nav');
+            if (viewId === 'auth-view') {
+                nav.style.display = 'none';
+            } else {
+                nav.style.display = 'flex';
+                updateNavbar();
+            }
+
+            // Update FAB
+            const fab = document.getElementById('fab-btn');
+            if (state.currentUser && (viewId === 'feed-view' || viewId === 'profile-view')) {
+                fab.classList.remove('hidden');
+            } else {
+                fab.classList.add('hidden');
+            }
+
+            // View Specific Logic
+            if (viewId === 'region-view') {
+                document.getElementById('region-welcome-msg').innerText = `您好，${state.currentUser.name}！請選擇您目前的地區`;
+            }
+            if (viewId === 'feed-view') {
+                renderFeed();
+            }
+            if (viewId === 'new-post-view') {
+                document.getElementById('new-post-form').reset();
+                document.getElementById('image-preview').style.display = 'none';
+                document.getElementById('new-post-author').innerHTML = `<span class="mono">${state.currentUser.id}</span> · ${state.currentUser.name}`;
+                // Auto-select user region
+                if(state.currentUser.region) {
+                    document.getElementById('post-region').value = state.currentUser.region;
+                }
+            }
+            if (viewId === 'profile-view') {
+                renderProfile();
+            }
+        }
+
+        function updateNavbar() {
+            const area = document.getElementById('nav-user-area');
+            if (state.currentUser) {
+                area.innerHTML = `
+                    <div class="user-profile-btn" onclick="navigate('profile-view')">
+                        👤 ${state.currentUser.name}
+                    </div>
+                    <button class="logout-btn" onclick="handleLogout()">登出</button>
+                `;
+            } else {
+                area.innerHTML = `
+                    <button class="btn" style="padding: 6px 16px; width:auto;" onclick="logoutAndGoToAuth('login')">登入 / 註冊</button>
+                `;
+            }
+        }
+
+        /* ================= Auth Logic ================= */
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            if(tab === 'login') {
+                document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+                document.getElementById('login-form').classList.add('active');
+            } else {
+                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+                document.getElementById('register-form').classList.add('active');
+            }
+            document.getElementById('login-error').innerText = '';
+            document.getElementById('reg-error').innerText = '';
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const id = document.getElementById('reg-id').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const pwd = document.getElementById('reg-pwd').value;
+            const pwd2 = document.getElementById('reg-pwd2').value;
+            const errDiv = document.getElementById('reg-error');
+
+            if (pwd !== pwd2) return errDiv.innerText = "兩次密碼輸入不一致";
+            
+            let users = db.get('users');
+            if (users.find(u => u.id === id)) return errDiv.innerText = "此用戶 ID 已被使用";
+
+            const newUser = { id, name, password: pwd, region: null, createdAt: Date.now() };
+            users.push(newUser);
+            db.set('users', users);
+            
+            showCaptcha(newUser);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('login-id').value.trim();
+            const pwd = document.getElementById('login-pwd').value;
+            const errDiv = document.getElementById('login-error');
+
+            let users = db.get('users');
+            let user = users.find(u => u.id === id);
+            
+            if (!user) return errDiv.innerText = "找不到此用戶 ID";
+            if (user.password !== pwd) return errDiv.innerText = "密碼錯誤";
+
+            showCaptcha(user);
+        }
+
+        function loginUser(user) {
+            const { password, ...safeUser } = user;
+            state.currentUser = safeUser;
+            db.set('currentUser', safeUser);
+            if (!safeUser.region) {
+                navigate('region-view');
+            } else {
+                navigate('feed-view');
+            }
+            closeModal('auth-modal');
+        }
+
+        function handleLogout() {
+            state.currentUser = null;
+            db.set('currentUser', null);
+            navigate('auth-view');
+            switchAuthTab('login');
+        }
+
+        function continueAsGuest() {
+            state.currentUser = null;
+            db.set('currentUser', null);
+            navigate('feed-view');
+        }
+
+        function logoutAndGoToAuth(tab) {
+            closeModal('auth-modal');
+            state.currentUser = null;
+            db.set('currentUser', null);
+            navigate('auth-view');
+            switchAuthTab(tab);
+        }
+
+        /* ================= Region Selection ================= */
+        function buildRegionUI() {
+            const grid = document.getElementById('region-grid');
+            const select = document.getElementById('post-region');
+            const filters = document.getElementById('feed-filters');
+            
+            grid.innerHTML = '';
+            select.innerHTML = '<option value="" disabled selected>選擇發布地區...</option>';
+            
+            // Keep the 'All' filter pill
+            let filterHtml = `<div class="filter-pill active" onclick="setFeedFilter('All')">全部</div>`;
+
+            REGIONS.forEach((r, idx) => {
+                // Region Cards
+                grid.innerHTML += `
+                    <div class="region-card" onclick="selectRegion('${r}')">
+                        <div class="region-icon">${REGION_ICONS[idx]}</div>
+                        <div style="font-weight: 700;">${r}</div>
+                    </div>
+                `;
+                // Select Options
+                select.innerHTML += `<option value="${r}">${r}</option>`;
+                // Filters
+                filterHtml += `<div class="filter-pill" onclick="setFeedFilter('${r}')">${r}</div>`;
+            });
+            filters.innerHTML = filterHtml;
+        }
+
+        function selectRegion(region) {
+            state.currentUser.region = region;
+            db.set('currentUser', state.currentUser);
+            // Update user in DB
+            let users = db.get('users');
+            let uIdx = users.findIndex(u => u.id === state.currentUser.id);
+            if(uIdx > -1) {
+                users[uIdx].region = region;
+                db.set('users', users);
+            }
+            state.feedFilter = region; // Auto filter to their region
+            navigate('feed-view');
+        }
+
+        /* ================= Feed & Posts ================= */
+        function setFeedFilter(region) {
+            state.feedFilter = region;
+            document.querySelectorAll('#feed-filters .filter-pill').forEach(el => {
+                el.classList.remove('active');
+                if (el.innerText === region) el.classList.add('active');
+            });
+            renderFeed();
+        }
+
+        function renderFeed() {
+            let posts = db.get('posts').sort((a,b) => b.createdAt - a.createdAt);
+            if (state.feedFilter !== 'All') {
+                posts = posts.filter(p => p.region === state.feedFilter);
+            }
+            renderPostList('feed-post-list', posts);
+        }
+
+        function renderProfile() {
+            document.getElementById('profile-avatar').innerText = state.currentUser.name.charAt(0);
+            document.getElementById('profile-name').innerText = state.currentUser.name;
+            document.getElementById('profile-id').innerText = `@${state.currentUser.id}`;
+            document.getElementById('profile-region').innerText = `📍 主要活動地區：${state.currentUser.region || '未設定'}`;
+
+            let posts = db.get('posts')
+                          .filter(p => p.authorId === state.currentUser.id)
+                          .sort((a,b) => b.createdAt - a.createdAt);
+            
+            if(posts.length === 0) {
+                document.getElementById('profile-post-list').innerHTML = `<p style="text-align:center; color:var(--text-muted);">尚未發布任何貼文</p>`;
+            } else {
+                renderPostList('profile-post-list', posts);
+            }
+        }
+
+        function renderPostList(containerId, posts) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (posts.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 40px 0;">目前沒有相關的排隊資訊。</div>`;
+                return;
+            }
+
+            const comments = db.get('comments');
+
+            posts.forEach(post => {
+                const isLiked = state.currentUser && post.likes.includes(state.currentUser.id);
+                const commentCount = comments.filter(c => c.postId === post.postId).length;
+                const hasImage = post.imageBase64 && post.imageBase64.length > 0;
+                
+                // Truncate logic
+                // Using CSS line-clamp, but adding JS toggle
+                const contentHtml = `
+                    <div class="post-content">
+                        <div class="post-content-text" id="text-${post.postId}">${post.content}</div>
+                        ${post.content.length > 100 ? `<div class="more-toggle" id="more-${post.postId}" onclick="toggleText(event, '${post.postId}')">...展開更多</div>` : ''}
+                    </div>
+                `;
+
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div class="author-info">
+                            <div class="author-avatar">${post.authorName.charAt(0)}</div>
+                            <div class="author-meta">
+                                <span class="author-name">${post.authorName}</span>
+                                <span class="author-id mono">@${post.authorId}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="post-region-badge">${post.region}</div>
+                            ${state.currentUser && state.currentUser.id === post.authorId ? `<button class="delete-btn" onclick="deletePost('${post.postId}')" title="刪除貼文">🗑️</button>` : ''}
+                        </div>
+                    </div>
+                    <div class="post-title">${post.title}</div>
+                    ${contentHtml}
+                    ${hasImage ? `<img src="${post.imageBase64}" class="post-image" onclick="openLightbox('${post.imageBase64}')" alt="Post image">` : ''}
+                    <div class="post-footer">
+                        <div class="post-actions">
+                            <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.postId}')">
+                                ${isLiked ? '❤️' : '🤍'} <span id="like-count-${post.postId}">${post.likes.length}</span>
+                            </button>
+                            <button class="action-btn" onclick="toggleComments('${post.postId}')">
+                                💬 <span id="comment-count-${post.postId}">${commentCount}</span>
+                            </button>
+                        </div>
+                        <div class="post-time mono">${formatRelativeTime(post.createdAt)}</div>
+                    </div>
+                    <div class="comments-section" id="comments-${post.postId}">
+                        <div class="comments-list" id="clist-${post.postId}"></div>
+                        ${state.currentUser ? `
+                            <form class="comment-input-area" onsubmit="addComment(event, '${post.postId}')">
+                                <input type="text" id="cinput-${post.postId}" placeholder="留言回覆..." required>
+                                <button type="submit" class="btn">送出</button>
+                            </form>
+                        ` : `
+                            <div class="guest-comment-msg">
+                                登入後即可留言 <a onclick="openModal('auth-modal')">前往登入</a>
+                            </div>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Show "more" button if text actually overflows
+                setTimeout(() => {
+                    const textEl = document.getElementById(`text-${post.postId}`);
+                    const moreBtn = document.getElementById(`more-${post.postId}`);
+                    if(textEl && moreBtn) {
+                        if(textEl.scrollHeight > textEl.clientHeight) {
+                            moreBtn.style.display = 'block';
+                        }
+                    }
+                }, 0);
+            });
+        }
+
+        function toggleText(e, postId) {
+            e.stopPropagation();
+            const textEl = document.getElementById(`text-${postId}`);
+            const btnEl = document.getElementById(`more-${postId}`);
+            textEl.classList.toggle('expanded');
+            btnEl.innerText = textEl.classList.contains('expanded') ? '收起' : '...展開更多';
+        }
+
+        function deletePost(postId) {
+            if (confirm('確定要刪除這篇貼文嗎？刪除後無法恢復。')) {
+                let posts = db.get('posts');
+                posts = posts.filter(p => p.postId !== postId);
+                db.set('posts', posts);
+                
+                // Re-render current view
+                if(state.currentView === 'feed-view') renderFeed();
+                if(state.currentView === 'profile-view') renderProfile();
+            }
+        }
+
+        function toggleLike(postId) {
+            if (!state.currentUser) return openModal('auth-modal');
+            
+            let posts = db.get('posts');
+            let post = posts.find(p => p.postId === postId);
+            if (!post) return;
+
+            const idx = post.likes.indexOf(state.currentUser.id);
+            if (idx > -1) {
+                post.likes.splice(idx, 1); // Unlike
+            } else {
+                post.likes.push(state.currentUser.id); // Like
+            }
+
+            db.set('posts', posts);
+            
+            // Re-render current view to reflect changes simply
+            if(state.currentView === 'feed-view') renderFeed();
+            if(state.currentView === 'profile-view') renderProfile();
+        }
+
+        /* ================= Post Creation ================= */
+        async function previewImage(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('image-preview');
+            if(file) {
+                const base64 = await getBase64(file);
+                preview.src = base64;
+                preview.style.display = 'block';
+                // Attach to form dataset for easy access
+                document.getElementById('new-post-form').dataset.img = base64;
+            } else {
+                preview.style.display = 'none';
+                document.getElementById('new-post-form').dataset.img = '';
+            }
+        }
+
+        function handleNewPost(e) {
+            e.preventDefault();
+            const region = document.getElementById('post-region').value;
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            const imageBase64 = document.getElementById('new-post-form').dataset.img || "";
+
+            const newPost = {
+                postId: generateId(),
+                authorId: state.currentUser.id,
+                authorName: state.currentUser.name,
+                region,
+                title,
+                content,
+                imageBase64,
+                likes: [],
+                createdAt: Date.now()
+            };
+
+            let posts = db.get('posts');
+            posts.push(newPost);
+            db.set('posts', posts);
+
+            // Navigate back and show newly created post
+            state.feedFilter = region; // Set filter to where they posted
+            navigate('feed-view');
+        }
+
+        /* ================= Comments ================= */
+        function toggleComments(postId) {
+            const section = document.getElementById(`comments-${postId}`);
+            if(section.style.display === 'block') {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+                renderComments(postId);
+            }
+        }
+
+        function renderComments(postId) {
+            const cList = document.getElementById(`clist-${postId}`);
+            const comments = db.get('comments')
+                               .filter(c => c.postId === postId)
+                               .sort((a,b) => a.createdAt - b.createdAt);
+            
+            cList.innerHTML = comments.map(c => `
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <span class="comment-author">${c.authorName} <span class="mono" style="color:var(--text-muted);font-weight:normal;font-size:0.8rem;">@${c.authorId}</span></span>
+                        <span class="mono" style="color:var(--text-muted);">${formatRelativeTime(c.createdAt)}</span>
+                    </div>
+                    <div class="comment-text">${c.content}</div>
+                </div>
+            `).join('');
+
+            document.getElementById(`comment-count-${postId}`).innerText = comments.length;
+        }
+
+        function addComment(e, postId) {
+            e.preventDefault();
+            if (!state.currentUser) return;
+
+            const input = document.getElementById(`cinput-${postId}`);
+            const content = input.value.trim();
+            if(!content) return;
+
+            const newComment = {
+                commentId: generateId(),
+                postId: postId,
+                authorId: state.currentUser.id,
+                authorName: state.currentUser.name,
+                content: content,
+                createdAt: Date.now()
+            };
+
+            let comments = db.get('comments');
+            comments.push(newComment);
+            db.set('comments', comments);
+
+            input.value = '';
+            renderComments(postId);
+        }
+
+        /* ================= Modals ================= */
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id, e) {
+            if(e && e.target.id !== id && !e.target.classList.contains('close-trigger')) return;
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            openModal('lightbox-modal');
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
