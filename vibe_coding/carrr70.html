@@ -395,18 +395,6 @@
         }
         .action-btn:hover { color: var(--primary); transform: none; }
         .action-btn.liked { color: var(--primary); }
-
-        .delete-btn {
-            background: transparent;
-            color: #ccc;
-            font-size: 1.1rem;
-            margin-left: 8px;
-            transition: var(--transition);
-        }
-        .delete-btn:hover {
-            color: var(--error);
-            transform: scale(1.1);
-        }
         
         .post-time { font-size: 0.85rem; color: #999; }
 
@@ -571,187 +559,6 @@
             .post-card { padding: 16px; }
             .container { padding: 12px; }
         }
-
-        /* ================= CAPTCHA 2FA ================= */
-        .captcha-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .captcha-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-        .captcha-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 32px;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
-            animation: captchaSlideIn 0.4s forwards;
-        }
-        @keyframes captchaSlideIn {
-            from { transform: scale(0.9) translateY(20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        .captcha-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .captcha-header .captcha-icon {
-            font-size: 2.5rem;
-            margin-bottom: 8px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-        .captcha-header h3 {
-            font-size: 1.2rem;
-            margin-bottom: 6px;
-        }
-        .captcha-header p {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-        .captcha-header p strong {
-            color: var(--primary);
-        }
-        .captcha-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .captcha-tile {
-            aspect-ratio: 1;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            border: 3px solid transparent;
-            user-select: none;
-        }
-        .captcha-tile:hover {
-            transform: scale(1.06);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-        }
-        .captcha-tile:active {
-            transform: scale(0.96);
-        }
-        .captcha-tile .tile-emoji {
-            font-size: 2.6rem;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-            transition: transform 0.2s;
-            z-index: 1;
-        }
-        .captcha-tile:hover .tile-emoji {
-            transform: scale(1.12);
-        }
-        .captcha-tile .tile-check {
-            position: absolute;
-            top: 5px; right: 5px;
-            width: 22px; height: 22px;
-            background: var(--primary);
-            color: #fff;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            box-shadow: 0 2px 6px rgba(255, 95, 31, 0.5);
-            z-index: 2;
-        }
-        @keyframes checkPop {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
-        }
-        .captcha-tile.selected {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(255, 95, 31, 0.25), 0 4px 12px rgba(255, 95, 31, 0.15);
-        }
-        .captcha-tile.selected .tile-check {
-            display: flex;
-            animation: checkPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .captcha-tile.selected .tile-emoji {
-            transform: scale(0.92);
-        }
-        .captcha-error-msg {
-            color: var(--error);
-            font-size: 0.85rem;
-            text-align: center;
-            min-height: 20px;
-            margin-bottom: 8px;
-        }
-        .captcha-actions {
-            display: flex;
-            gap: 12px;
-        }
-        .captcha-actions .btn {
-            flex: 1;
-        }
-        .captcha-footer {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 0.82rem;
-            color: var(--text-muted);
-        }
-        .captcha-refresh {
-            color: var(--primary);
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .captcha-refresh:hover {
-            text-decoration: underline;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px); }
-            40% { transform: translateX(8px); }
-            60% { transform: translateX(-5px); }
-            80% { transform: translateX(5px); }
-        }
-        .captcha-card.shake {
-            animation: shake 0.45s ease;
-        }
-        .captcha-card.success {
-            animation: captchaSuccess 0.5s ease forwards;
-        }
-        @keyframes captchaSuccess {
-            0% { transform: scale(1); }
-            40% { transform: scale(1.03); }
-            100% { transform: scale(0.95); opacity: 0; }
-        }
-        .captcha-progress {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 16px;
-        }
-        .captcha-progress-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: #ddd;
-            transition: background 0.3s;
-        }
-        .captcha-progress-dot.filled {
-            background: var(--primary);
-        }
     </style>
 </head>
 <body>
@@ -879,28 +686,6 @@
         </div>
     </div>
 
-    <!-- CAPTCHA 2FA Modal -->
-    <div class="captcha-overlay" id="captcha-modal">
-        <div class="captcha-card" id="captcha-card">
-            <div class="captcha-header">
-                <div class="captcha-icon">🛡️</div>
-                <h3>安全驗證</h3>
-                <p>請選取所有包含 <strong>交通工具</strong> 的圖片</p>
-            </div>
-            <div class="captcha-grid" id="captcha-grid">
-                <!-- Grid items generated by JS -->
-            </div>
-            <div id="captcha-error" class="captcha-error-msg"></div>
-            <div class="captcha-actions">
-                <button class="btn btn-outline" onclick="closeCaptcha()">取消</button>
-                <button class="btn" onclick="verifyCaptcha()">驗證</button>
-            </div>
-            <div class="captcha-footer">
-                <span class="captcha-refresh" onclick="generateCaptcha()">更換圖片 ↻</span>
-            </div>
-        </div>
-    </div>
-
     <script>
         /* ================= Core Data & Config ================= */
         const REGIONS = ['台北市', '新北市', '桃園市', '台中市', '台南市', '高雄市', '新竹市', '嘉義市'];
@@ -909,128 +694,8 @@
         let state = {
             currentView: 'auth-view',
             currentUser: null,
-            feedFilter: 'All',
-            pendingUser: null
+            feedFilter: 'All'
         };
-
-        /* ================= CAPTCHA Logic ================= */
-        const CAPTCHA_ITEMS = [
-            { id: 'bus', emoji: '🚌', isVehicle: true, color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)' },
-            { id: 'taxi', emoji: '🚕', isVehicle: true, color: 'linear-gradient(120deg, #f6d365 0%, #fda085 100%)' },
-            { id: 'train', emoji: '🚄', isVehicle: true, color: 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)' },
-            { id: 'bike', emoji: '🚲', isVehicle: true, color: 'linear-gradient(to top, #0ba360 0%, #3cba92 100%)' },
-            { id: 'scooter', emoji: '🛵', isVehicle: true, color: 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)' },
-            { id: 'car', emoji: '🚗', isVehicle: true, color: 'linear-gradient(to right, #fa709a 0%, #fee140 100%)' },
-            { id: 'dog', emoji: '🐕', isVehicle: false, color: 'linear-gradient(to top, #d299c2 0%, #fef9d7 100%)' },
-            { id: 'cat', emoji: '🐈', isVehicle: false, color: 'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)' },
-            { id: 'tree', emoji: '🌳', isVehicle: false, color: 'linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)' },
-            { id: 'house', emoji: '🏠', isVehicle: false, color: 'linear-gradient(to right, #eea2a2 0%, #bbc1bf 19%, #57c6e1 42%, #b49fda 79%, #7ac5d8 100%)' },
-            { id: 'burger', emoji: '🍔', isVehicle: false, color: 'linear-gradient(to top, #ff0844 0%, #ffb199 100%)' },
-            { id: 'coffee', emoji: '☕', isVehicle: false, color: 'linear-gradient(to right, #b8cbb8 0%, #b8cbb8 0%, #b465da 0%, #cf6cc9 33%, #ee609c 66%, #ee609c 100%)' },
-            { id: 'book', emoji: '📚', isVehicle: false, color: 'linear-gradient(to top, #96fbc4 0%, #f9f586 100%)' },
-            { id: 'apple', emoji: '🍎', isVehicle: false, color: 'linear-gradient(to right, #ffecd2 0%, #fcb69f 100%)' },
-            { id: 'cloud', emoji: '☁️', isVehicle: false, color: 'linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%)' }
-        ];
-
-        let captchaTargetIndices = [];
-        let captchaSelectedIndices = new Set();
-
-        function showCaptcha(user) {
-            state.pendingUser = user;
-            generateCaptcha();
-            document.getElementById('captcha-modal').classList.add('active');
-            document.getElementById('captcha-card').classList.remove('success');
-        }
-
-        function closeCaptcha() {
-            document.getElementById('captcha-modal').classList.remove('active');
-            state.pendingUser = null;
-        }
-
-        function generateCaptcha() {
-            const grid = document.getElementById('captcha-grid');
-            grid.innerHTML = '';
-            captchaSelectedIndices.clear();
-            document.getElementById('captcha-error').innerText = '';
-            
-            // Randomly pick 9 items, ensuring at least 3 vehicles
-            let vehicles = CAPTCHA_ITEMS.filter(item => item.isVehicle).sort(() => 0.5 - Math.random());
-            let nonVehicles = CAPTCHA_ITEMS.filter(item => !item.isVehicle).sort(() => 0.5 - Math.random());
-            
-            let numVehicles = Math.floor(Math.random() * 3) + 3; // 3 to 5 vehicles
-            let selectedItems = vehicles.slice(0, numVehicles).concat(nonVehicles.slice(0, 9 - numVehicles));
-            selectedItems.sort(() => 0.5 - Math.random()); // Shuffle again
-
-            captchaTargetIndices = [];
-            selectedItems.forEach((item, index) => {
-                if (item.isVehicle) captchaTargetIndices.push(index);
-                
-                const tile = document.createElement('div');
-                tile.className = 'captcha-tile';
-                tile.style.background = item.color;
-                tile.innerHTML = `
-                    <div class="tile-emoji">${item.emoji}</div>
-                    <div class="tile-check">✓</div>
-                `;
-                tile.onclick = () => toggleCaptchaTile(index, tile);
-                grid.appendChild(tile);
-            });
-        }
-
-        function toggleCaptchaTile(index, tileElement) {
-            if (captchaSelectedIndices.has(index)) {
-                captchaSelectedIndices.delete(index);
-                tileElement.classList.remove('selected');
-            } else {
-                captchaSelectedIndices.add(index);
-                tileElement.classList.add('selected');
-            }
-            document.getElementById('captcha-error').innerText = '';
-        }
-
-        function verifyCaptcha() {
-            const errDiv = document.getElementById('captcha-error');
-            const card = document.getElementById('captcha-card');
-            
-            if (captchaSelectedIndices.size === 0) {
-                errDiv.innerText = "請選取至少一張圖片";
-                triggerShake(card);
-                return;
-            }
-
-            let isCorrect = true;
-            if (captchaSelectedIndices.size !== captchaTargetIndices.length) {
-                isCorrect = false;
-            } else {
-                for (let idx of captchaTargetIndices) {
-                    if (!captchaSelectedIndices.has(idx)) {
-                        isCorrect = false;
-                        break;
-                    }
-                }
-            }
-
-            if (isCorrect) {
-                card.classList.add('success');
-                setTimeout(() => {
-                    const userToLogin = state.pendingUser;
-                    closeCaptcha();
-                    if (userToLogin) {
-                        loginUser(userToLogin);
-                    }
-                }, 500);
-            } else {
-                errDiv.innerText = "驗證失敗，請再試一次";
-                triggerShake(card);
-                setTimeout(generateCaptcha, 600); // Generate a new one after failure
-            }
-        }
-
-        function triggerShake(element) {
-            element.classList.remove('shake');
-            void element.offsetWidth; // trigger reflow
-            element.classList.add('shake');
-        }
 
         // LocalStorage Helpers
         const db = {
@@ -1204,7 +869,7 @@
             users.push(newUser);
             db.set('users', users);
             
-            showCaptcha(newUser);
+            loginUser(newUser);
         }
 
         function handleLogin(e) {
@@ -1219,7 +884,7 @@
             if (!user) return errDiv.innerText = "找不到此用戶 ID";
             if (user.password !== pwd) return errDiv.innerText = "密碼錯誤";
 
-            showCaptcha(user);
+            loginUser(user);
         }
 
         function loginUser(user) {
@@ -1368,10 +1033,7 @@
                                 <span class="author-id mono">@${post.authorId}</span>
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="post-region-badge">${post.region}</div>
-                            ${state.currentUser && state.currentUser.id === post.authorId ? `<button class="delete-btn" onclick="deletePost('${post.postId}')" title="刪除貼文">🗑️</button>` : ''}
-                        </div>
+                        <div class="post-region-badge">${post.region}</div>
                     </div>
                     <div class="post-title">${post.title}</div>
                     ${contentHtml}
@@ -1422,18 +1084,6 @@
             const btnEl = document.getElementById(`more-${postId}`);
             textEl.classList.toggle('expanded');
             btnEl.innerText = textEl.classList.contains('expanded') ? '收起' : '...展開更多';
-        }
-
-        function deletePost(postId) {
-            if (confirm('確定要刪除這篇貼文嗎？刪除後無法恢復。')) {
-                let posts = db.get('posts');
-                posts = posts.filter(p => p.postId !== postId);
-                db.set('posts', posts);
-                
-                // Re-render current view
-                if(state.currentView === 'feed-view') renderFeed();
-                if(state.currentView === 'profile-view') renderProfile();
-            }
         }
 
         function toggleLike(postId) {
