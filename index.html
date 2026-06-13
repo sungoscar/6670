@@ -1,1619 +1,1229 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Idiot 6670</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransitQ — 交通工具即時排隊資訊分享平台</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================= CSS Variables & Base Styles ================= */
+        :root {
+            --bg-color: #F7F7F5;
+            --text-main: #1A1A1A;
+            --text-muted: #666666;
+            --primary: #FF5F1F;
+            --primary-hover: #E04D14;
+            --card-bg: #FFFFFF;
+            --border-radius: 12px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --grid-line: rgba(0, 0, 0, 0.03);
+            --error: #D32F2F;
+        }
 
-:root{
-  --bg:#f2f2f7;
-  --bg2:#e5e5ea;
-  --surface:rgba(255,255,255,0.72);
-  --surface-solid:#ffffff;
-  --text:#1c1c1e;
-  --text2:#3a3a3c;
-  --text3:#8e8e93;
-  --text4:#aeaeb2;
-  --green:#34c759;
-  --green-bg:rgba(52,199,89,0.12);
-  --green-soft:#34c759;
-  --yellow:#ff9f0a;
-  --yellow-bg:rgba(255,159,10,0.12);
-  --yellow-soft:#ff9f0a;
-  --red:#ff3b30;
-  --red-bg:rgba(255,59,48,0.12);
-  --red-soft:#ff3b30;
-  --blue:#007aff;
-  --blue-bg:rgba(0,122,255,0.10);
-  --blue-soft:#007aff;
-  --accent:#007aff;
-  --accent2:#5ac8fa;
-  --separator:rgba(60,60,67,0.08);
-  --glass-bg:rgba(255,255,255,0.72);
-  --glass-blur:blur(20px) saturate(180%);
-  --glass-shadow:0 2px 20px rgba(0,0,0,0.06);
-  --glass-shadow-hover:0 8px 30px rgba(0,0,0,0.10);
-  --card-radius:20px;
-  --btn-radius:14px;
-  --spring:cubic-bezier(0.34,1.56,0.64,1);
-  --ease:cubic-bezier(0.25,0.46,0.45,0.94);
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-body{
-  background:linear-gradient(145deg,#c7d2e8 0%,#d4dced 40%,#e8dde6 100%);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  font-family:-apple-system,'SF Pro Display','SF Pro Text','Noto Sans TC','Helvetica Neue',sans-serif;
-  padding:24px 12px;
-  -webkit-font-smoothing:antialiased;
-}
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            /* Subtle Grid Texture */
+            background-image: 
+                linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+            background-size: 24px 24px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-/* PHONE */
-.phone{
-  width:393px;
-  min-height:852px;
-  background:var(--bg);
-  border-radius:52px;
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,0.06),
-    0 0 0 6px rgba(120,130,160,0.25),
-    0 50px 100px rgba(30,40,80,0.25),
-    inset 0 1px 0 rgba(255,255,255,0.8);
-  position:relative;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-}
+        .mono {
+            font-family: 'Space Mono', monospace;
+        }
 
-/* Dynamic Island */
-.notch{
-  width:126px;height:37px;
-  background:#000;
-  border-radius:20px;
-  margin:10px auto 0;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  z-index:10;position:relative;
-}
-.notch-cam{width:12px;height:12px;border-radius:50%;background:#1a1a2e;box-shadow:inset 0 0 3px rgba(100,100,255,0.25);}
-.notch-mic{display:none;}
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-/* STATUS BAR */
-.status-bar{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:6px 28px 0;
-  font-family:'DM Mono','SF Mono',monospace;font-size:11px;color:var(--text);
-  font-weight:500;
-}
-.status-icons{display:flex;gap:6px;align-items:center;}
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: var(--transition);
+        }
 
-/* SCREENS */
-.screen{display:none;flex:1;flex-direction:column;overflow:hidden;}
-.screen.active{display:flex;}
+        .btn {
+            background-color: var(--primary);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+        }
 
-/* SCROLL AREA */
-.scroll{flex:1;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.scroll::-webkit-scrollbar{display:none;}
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
 
-/* ===== BOTTOM NAV (Glassmorphic) ===== */
-.bottom-nav{
-  display:flex;
-  background:rgba(255,255,255,0.78);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  padding:6px 0 28px;
-  position:relative;
-}
-.nav-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:6px 0;cursor:pointer;
-  transition:transform 0.2s var(--spring);
-  -webkit-tap-highlight-color:transparent;
-  position:relative;
-}
-.nav-item:active{transform:scale(0.88);}
-.nav-icon{
-  font-size:22px;
-  transition:transform 0.35s var(--spring);
-  filter:grayscale(0.5) opacity(0.6);
-}
-.nav-label{font-size:10px;color:var(--text3);font-weight:500;transition:color 0.2s;}
-.nav-item.active .nav-label{color:#6a9dff;font-weight:600;}
-.nav-item.active .nav-icon{
-  transform:scale(1.15);
-  filter:grayscale(0) opacity(1);
-  animation:navBounce 0.4s var(--spring);
-}
-.nav-item.active::after{
-  content:'';position:absolute;bottom:24px;
-  width:20px;height:3px;border-radius:2px;
-  background:linear-gradient(90deg,#6a9dff,#a8c4ff);
-  opacity:1;
-  animation:dotIn 0.3s var(--spring);
-}
-.nav-item:not(.active)::after{content:none;}
-@keyframes navBounce{0%{transform:scale(0.7)}50%{transform:scale(1.25)}100%{transform:scale(1.15)}}
-@keyframes dotIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--text-main);
+        }
 
-/* ===========================
-   HOME SCREEN
-=========================== */
-.home-header{
-  padding:22px 24px 20px;
-  background:linear-gradient(155deg,#4a7cff 0%,#6a9dff 35%,#a8c4ff 65%,#c4b5f5 100%);
-  border-radius:0 0 32px 32px;
-  position:relative;overflow:hidden;
-}
-/* Mesh gradient orbs */
-.home-header::before{
-  content:'';position:absolute;
-  top:-50px;right:-30px;
-  width:200px;height:200px;
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%);
-  animation:orbFloat 8s ease-in-out infinite;
-}
-.home-header::after{
-  content:'';position:absolute;
-  bottom:-70px;left:-20px;
-  width:180px;height:180px;
-  border-radius:50%;
-  background:radial-gradient(circle,rgba(180,160,255,0.2) 0%,transparent 70%);
-  animation:orbFloat 10s ease-in-out 2s infinite reverse;
-}
-@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(12px,-8px) scale(1.05)}}
+        .btn-outline:hover {
+            background-color: var(--text-main);
+            color: #fff;
+            transform: translateY(-2px);
+        }
 
-.home-greeting{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:4px;font-weight:400;}
-.home-title{font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.03em;line-height:1.1;}
-.home-title span{color:rgba(255,255,255,0.7);}
-.home-sub{font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;font-weight:400;}
-.live-dot{
-  display:inline-flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,0.18);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  border-radius:20px;padding:5px 14px;font-size:11px;color:#fff;
-  margin-top:12px;font-family:'DM Mono','SF Mono',monospace;letter-spacing:0.04em;
-  font-weight:500;
-}
-.live-dot-circle{
-  width:7px;height:7px;border-radius:50%;
-  background:#6fffb0;
-  box-shadow:0 0 8px rgba(111,255,176,0.6);
-  animation:breathe 2.4s ease-in-out infinite;
-}
-@keyframes breathe{
-  0%,100%{opacity:1;box-shadow:0 0 8px rgba(111,255,176,0.6)}
-  50%{opacity:0.4;box-shadow:0 0 4px rgba(111,255,176,0.2)}
-}
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: var(--card-bg);
+            transition: var(--transition);
+        }
 
-/* Section title - Apple style */
-.section-title{
-  font-size:15px;font-weight:600;color:var(--text2);
-  margin-bottom:12px;
-}
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 95, 31, 0.1);
+        }
 
-/* ROUTE MAP */
-.route-map-section{padding:20px 22px 4px;}
-.route-map-card{
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:var(--card-radius);
-  padding:20px 18px 14px;
-  box-shadow:var(--glass-shadow);
-  position:relative;overflow:hidden;
-  transition:transform 0.2s var(--ease),box-shadow 0.2s var(--ease);
-}
-.route-svg-wrap{width:100%;height:110px;position:relative;}
-.route-station{
-  display:flex;flex-direction:column;align-items:center;
-  position:absolute;top:0;
-  cursor:pointer;
-  transition:transform 0.25s var(--spring);
-  -webkit-tap-highlight-color:transparent;
-}
-.route-station:hover{transform:scale(1.08);}
-.route-station:active{transform:scale(0.96);}
-.station-bubble{
-  width:46px;height:46px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:19px;
-  border:none;
-  box-shadow:0 4px 16px rgba(0,0,0,0.08);
-  position:relative;
-  transition:box-shadow 0.25s var(--ease);
-}
-.station-bubble:hover{box-shadow:0 6px 24px rgba(0,0,0,0.14);}
-.station-name-tag{
-  font-size:10px;font-weight:600;
-  color:var(--text2);text-align:center;
-  margin-top:6px;white-space:nowrap;
-  max-width:72px;
-}
-.status-pill-sm{
-  position:absolute;top:-3px;right:-3px;
-  width:14px;height:14px;border-radius:50%;
-  border:2.5px solid var(--bg);
-  box-shadow:0 2px 6px rgba(0,0,0,0.12);
-}
-.route-line-svg{position:absolute;top:23px;left:0;width:100%;height:6px;pointer-events:none;}
+        .error-msg {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            height: 20px;
+        }
 
-/* WEATHER STRIP */
-.weather-strip{
-  margin:16px 22px 0;
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:var(--card-radius);
-  padding:14px 16px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:var(--glass-shadow);
-  transition:transform 0.2s var(--ease),box-shadow 0.2s var(--ease);
-}
-.weather-strip:active{transform:scale(0.98);}
-.weather-icon{font-size:30px;}
-.weather-info{flex:1;}
-.weather-main{font-size:14px;font-weight:600;color:var(--text);}
-.weather-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-.weather-right{text-align:right;}
-.weather-temp{font-size:24px;font-weight:700;font-family:'DM Mono','SF Mono',monospace;color:var(--text);}
-.weather-rain{font-size:10px;color:var(--text3);margin-top:2px;}
+        /* ================= Layout & Views ================= */
+        .view {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 0.4s forwards cubic-bezier(0.25, 0.8, 0.25, 1);
+            min-height: 100vh;
+            padding-bottom: 80px; /* Space for FAB */
+        }
 
-/* HOME Alerts - left stripe style */
-.home-alerts{padding:16px 22px 0;}
-.alert-card{
-  border-radius:16px;padding:13px 14px 13px 18px;
-  display:flex;align-items:flex-start;gap:10px;
-  margin-bottom:10px;
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  box-shadow:var(--glass-shadow);
-  position:relative;overflow:hidden;
-  border:none;
-  transition:transform 0.2s var(--ease);
-}
-.alert-card:active{transform:scale(0.98);}
-/* Left color stripe */
-.alert-card::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;
-  width:4px;border-radius:4px 0 0 4px;
-}
-.alert-card.red::before{background:var(--red);}
-.alert-card.yellow::before{background:var(--yellow);}
-.alert-card.green::before{background:var(--green);}
-.alert-icon-sm{font-size:18px;flex-shrink:0;margin-top:1px;}
-.alert-text-wrap .alert-t{font-size:13px;font-weight:600;margin-bottom:2px;}
-.alert-text-wrap .alert-d{font-size:11px;line-height:1.55;color:var(--text3);}
-.alert-card.red .alert-t{color:var(--red);}
-.alert-card.yellow .alert-t{color:var(--yellow);}
-.alert-card.green .alert-t{color:var(--green);}
+        .view.active {
+            display: block;
+        }
 
-/* ===========================
-   STATION SCREEN
-=========================== */
-.station-header{
-  padding:16px 22px 14px;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-}
-.station-header-title{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-.station-header-sub{font-size:12px;color:var(--text3);margin-top:2px;}
-.station-list{padding:16px 22px;}
-.station-list-item{
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:var(--card-radius);
-  padding:14px 16px;
-  margin-bottom:10px;
-  display:flex;align-items:center;gap:14px;
-  cursor:pointer;
-  transition:transform 0.2s var(--ease),box-shadow 0.3s var(--ease);
-  box-shadow:var(--glass-shadow);
-  border:none;
-  -webkit-tap-highlight-color:transparent;
-}
-.station-list-item:hover{transform:translateY(-2px);box-shadow:var(--glass-shadow-hover);}
-.station-list-item:active{transform:scale(0.97);box-shadow:none;}
-.sli-icon{
-  width:46px;height:46px;border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:21px;
-  background:rgba(120,120,128,0.06);
-  border:none;
-}
-.sli-info{flex:1;}
-.sli-name{font-size:15px;font-weight:600;color:var(--text);}
-.sli-detail{font-size:11px;color:var(--text3);margin-top:2px;}
-.sli-status{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.status-dot-lg{
-  width:10px;height:10px;border-radius:50%;
-}
-.status-dot-lg.red{background:var(--red);box-shadow:0 0 10px rgba(255,59,48,0.4);}
-.status-dot-lg.yellow{background:var(--yellow);box-shadow:0 0 10px rgba(255,159,10,0.4);}
-.status-dot-lg.green{background:var(--green);box-shadow:0 0 10px rgba(52,199,89,0.4);}
-.sli-crowd-text{font-size:10px;font-weight:600;}
-.sli-crowd-text.red{color:var(--red);}
-.sli-crowd-text.yellow{color:var(--yellow);}
-.sli-crowd-text.green{color:var(--green);}
-.sli-arrow{font-size:16px;color:var(--text4);}
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-/* ===========================
-   STATION DETAIL SCREEN
-=========================== */
-.station-screen .scroll{background:var(--bg);}
-.detail-header{
-  padding:14px 22px 12px;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  display:flex;align-items:center;gap:10px;
-}
-.back-btn{
-  width:34px;height:34px;border-radius:50%;
-  background:rgba(120,120,128,0.08);
-  border:none;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;cursor:pointer;color:var(--accent);
-  transition:transform 0.2s var(--spring),background 0.15s;
-  -webkit-tap-highlight-color:transparent;
-}
-.back-btn:active{transform:scale(0.85);background:rgba(120,120,128,0.16);}
-.detail-header-info{flex:1;}
-.detail-station-name{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-.detail-station-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-/* Direction toggle → iOS Segmented Control */
-.direction-toggle{
-  display:flex;
-  background:rgba(120,120,128,0.08);
-  border-radius:10px;padding:2px;gap:0;
-  margin:14px 22px;
-  position:relative;
-  border:none;
-}
-.dtab{
-  flex:1;padding:8px 6px;border-radius:8px;
-  font-size:12px;font-weight:600;text-align:center;
-  color:var(--text2);cursor:pointer;
-  transition:all 0.25s var(--ease);
-  position:relative;z-index:1;
-  -webkit-tap-highlight-color:transparent;
-}
-.dtab.active{
-  background:var(--surface-solid);
-  color:var(--text);
-  box-shadow:0 1px 4px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
-}
+        /* ================= Navbar ================= */
+        .navbar {
+            background: var(--card-bg);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-/* Crowd overview with glow */
-.crowd-overview{
-  margin:0 22px 16px;
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:var(--card-radius);
-  padding:20px;
-  box-shadow:var(--glass-shadow);
-  border:none;
-  position:relative;
-}
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+            color: var(--primary);
+        }
 
-/* 【已修改】置頂回報系統區塊的 CSS 樣式 */
-#report-wrap {
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--separator);
-  padding-bottom: 16px;
-}
-.report-choice {
-  background: rgba(120,120,128,0.04);
-  border-radius: 14px;
-  padding: 12px;
-}
-.report-choice-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text2);
-  text-align: center;
-  margin-bottom: 10px;
-}
-.report-choice-btns {
-  display: flex;
-  gap: 8px;
-}
-.report-yes, .report-no {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: transform 0.15s;
-}
-.report-yes { background: var(--green-bg); color: var(--green); }
-.report-no { background: var(--red-bg); color: var(--red); }
-.report-yes:active, .report-no:active { transform: scale(0.95); }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
-.crowd-overview-top{display:flex;gap:18px;align-items:center;margin-bottom:18px;}
-/* Donut with ambient glow */
-.donut-wrap{position:relative;width:100px;height:100px;flex-shrink:0;}
-.donut-wrap::before{
-  content:'';position:absolute;
-  top:50%;left:50%;transform:translate(-50%,-50%);
-  width:80px;height:80px;border-radius:50%;
-  background:radial-gradient(circle,rgba(0,122,255,0.12) 0%,transparent 70%);
-  filter:blur(8px);
-  z-index:0;
-  transition:background 0.6s;
-}
-.donut-wrap svg{position:absolute;top:0;left:0;z-index:1;}
-.donut-center{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  text-align:center;z-index:2;
-}
-.donut-pct{font-size:22px;font-weight:700;font-family:'DM Mono','SF Mono',monospace;line-height:1;}
-.donut-lbl{font-size:9px;color:var(--text3);margin-top:2px;font-weight:500;}
-.crowd-stats{flex:1;display:flex;flex-direction:column;gap:10px;}
-.crowd-stat-item{display:flex;justify-content:space-between;align-items:center;}
-.csi-label{font-size:11px;color:var(--text3);}
-.csi-val{font-size:14px;font-weight:600;font-family:'DM Mono','SF Mono',monospace;}
+        .user-profile-btn {
+            font-weight: 500;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            transition: var(--transition);
+        }
 
-/* Anxiety & Queue comparison */
-.analysis-section{
-  border-top:1px solid var(--separator);
-  padding-top:16px;
-}
-.analysis-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;}
-/* Anxiety level indicator */
-.anx-level-card{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 14px;border-radius:14px;
-  background:rgba(120,120,128,0.04);
-  margin-bottom:12px;
-}
-.anx-level-dot{
-  width:36px;height:36px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
-}
-.anx-level-dot.green{background:var(--green-bg);}
-.anx-level-dot.yellow{background:var(--yellow-bg);}
-.anx-level-dot.red{background:var(--red-bg);}
-.anx-level-info{flex:1;}
-.anx-level-label{font-size:13px;font-weight:600;}
-.anx-level-label.green{color:var(--green);}
-.anx-level-label.yellow{color:var(--yellow);}
-.anx-level-label.red{color:var(--red);}
-.anx-level-desc{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5;}
-.anx-level-val{font-size:18px;font-weight:700;font-family:'DM Mono','SF Mono',monospace;}
-/* Anxiety legend */
-.anx-legend{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
-.anx-legend-item{
-  display:flex;align-items:center;gap:4px;
-  font-size:10px;color:var(--text3);font-weight:500;
-  padding:4px 8px;border-radius:8px;
-  background:rgba(120,120,128,0.04);
-}
-.anx-legend-dot{width:6px;height:6px;border-radius:50%;}
-/* Queue comparison bars */
-.queue-compare{margin-top:14px;}
-.queue-compare-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;}
-.queue-bar-row{margin-bottom:10px;}
-.queue-bar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
-.queue-bar-name{color:var(--text3);font-weight:500;}
-.queue-bar-val{font-weight:600;font-family:'DM Mono','SF Mono',monospace;}
-.queue-bar-track{height:8px;background:rgba(120,120,128,0.08);border-radius:4px;overflow:hidden;}
-.queue-bar-fill{height:100%;border-radius:4px;transition:width 0.6s var(--ease);}
-/* Report button */
-.report-btn{
-  width:100%;padding:12px;border-radius:14px;
-  background:rgba(0,122,255,0.08);color:var(--accent);
-  font-size:13px;font-weight:600;border:none;
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  cursor:pointer;
-  transition:transform 0.2s var(--spring),background 0.15s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  -webkit-tap-highlight-color:transparent;
-}
-.report-btn:active{transform:scale(0.96);background:rgba(0,122,255,0.14);}
-.report-btn.reported{background:var(--green-bg);color:var(--green);}
+        .user-profile-btn:hover { background: #e0e0e0; }
+        
+        .logout-btn {
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .logout-btn:hover { color: var(--error); transform: none; }
 
-/* Schedule */
-.schedule-section{margin:0 22px 16px;}
-.schedule-card{
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:16px;
-  padding:14px 16px;
-  margin-bottom:8px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:var(--glass-shadow);
-  cursor:pointer;
-  transition:transform 0.2s var(--ease),box-shadow 0.2s var(--ease);
-  border:none;
-  -webkit-tap-highlight-color:transparent;
-}
-.schedule-card:hover{transform:translateY(-1px);box-shadow:var(--glass-shadow-hover);}
-.schedule-card:active{transform:scale(0.97);}
-.schedule-card.highlight{
-  background:rgba(0,122,255,0.08);
-  box-shadow:0 2px 20px rgba(0,122,255,0.1);
-}
-.sc-time{min-width:56px;}
-.sc-time-main{font-size:20px;font-weight:700;font-family:'DM Mono','SF Mono',monospace;color:var(--text);line-height:1;}
-.sc-time-remain{font-size:10px;color:var(--text3);margin-top:3px;font-weight:500;}
-.sc-info{flex:1;}
-.sc-route{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.sc-detail{font-size:10px;color:var(--text3);}
-.sc-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.seat-pill{
-  padding:4px 10px;border-radius:20px;
-  font-size:10px;font-weight:600;
-  border:none;
-}
-.seat-pill.green{background:var(--green-bg);color:var(--green);}
-.seat-pill.yellow{background:var(--yellow-bg);color:var(--yellow);}
-.seat-pill.red{background:var(--red-bg);color:var(--red);}
-.next-tag-light{font-size:9px;color:var(--accent);font-weight:600;}
+        /* ================= Auth Page ================= */
+        .auth-container {
+            max-width: 400px;
+            margin: 10vh auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
 
-/* ===========================
-   MESSAGES SCREEN
-=========================== */
-.msg-header{
-  padding:16px 22px 12px;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.msg-header-title{font-size:20px;font-weight:700;color:var(--text);}
-.post-btn{
-  padding:8px 16px;border-radius:20px;
-  background:var(--accent);color:#fff;
-  font-size:12px;font-weight:600;border:none;
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  cursor:pointer;
-  transition:transform 0.2s var(--spring),box-shadow 0.2s;
-  box-shadow:0 2px 12px rgba(0,122,255,0.3);
-  -webkit-tap-highlight-color:transparent;
-}
-.post-btn:hover{box-shadow:0 4px 18px rgba(0,122,255,0.4);}
-.post-btn:active{transform:scale(0.92);}
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eee;
+        }
 
-.msg-list{padding:14px 22px;}
-.msg-card{
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:var(--card-radius);
-  padding:14px 16px;
-  margin-bottom:10px;
-  box-shadow:var(--glass-shadow);
-  border:none;
-  transition:transform 0.2s var(--ease);
-  position:relative;overflow:hidden;
-}
-.msg-card:active{transform:scale(0.98);}
-/* System alert → gradient stripe top */
-.msg-card.system-alert{
-  background:rgba(255,255,255,0.78);
-}
-.msg-card.system-alert::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#ff3b30,#ff6b6b);
-}
-.msg-card.system-warn{
-  background:rgba(255,255,255,0.78);
-}
-.msg-card.system-warn::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#ff9f0a,#ffcc00);
-}
-.msg-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.msg-avatar{
-  width:34px;height:34px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;
-  background:rgba(120,120,128,0.06);
-  border:none;
-  flex-shrink:0;
-}
-.msg-card.system-alert .msg-avatar{background:var(--red-bg);}
-.msg-card.system-warn .msg-avatar{background:var(--yellow-bg);}
-.msg-meta{flex:1;}
-.msg-author{font-size:13px;font-weight:600;color:var(--text);}
-.msg-time{font-size:10px;color:var(--text3);font-weight:400;}
-.msg-station-tag{
-  font-size:10px;font-weight:600;padding:3px 10px;
-  border-radius:10px;border:none;
-}
-.msg-station-tag.red{background:var(--red-bg);color:var(--red);}
-.msg-station-tag.yellow{background:var(--yellow-bg);color:var(--yellow);}
-.msg-station-tag.green{background:var(--green-bg);color:var(--green);}
-.msg-station-tag.blue{background:var(--blue-bg);color:var(--blue);}
-.msg-body{font-size:13px;color:var(--text2);line-height:1.6;}
-.msg-footer{display:flex;gap:10px;margin-top:10px;align-items:center;}
-.msg-like-btn{
-  font-size:12px;color:var(--text3);
-  display:flex;align-items:center;gap:4px;
-  cursor:pointer;padding:4px 0;
-  transition:color 0.15s,transform 0.2s var(--spring);
-  -webkit-tap-highlight-color:transparent;
-}
-.msg-like-btn:hover{color:var(--red);}
-.msg-like-btn:active{transform:scale(0.9);}
-.msg-delete-btn{
-  font-size:11px;color:var(--text4);
-  display:flex;align-items:center;gap:3px;
-  cursor:pointer;padding:4px 6px;border-radius:8px;
-  transition:all 0.2s var(--spring);
-  margin-left:auto;
-  -webkit-tap-highlight-color:transparent;
-  background:transparent;border:none;
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-}
-.msg-delete-btn:hover{color:var(--red);background:var(--red-bg);}
-.msg-delete-btn:active{transform:scale(0.9);}
-@keyframes msgSlideOut{to{opacity:0;transform:translateX(60px);height:0;margin:0;padding:0;overflow:hidden;}}
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
 
-/* Alternative transport card */
-.alt-transport{
-  background:var(--blue-bg);
-  border:none;
-  border-radius:14px;
-  padding:12px 14px;
-  margin-top:10px;
-}
-.alt-title{font-size:12px;font-weight:600;color:var(--blue);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
-.alt-option{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 0;
-  border-bottom:1px solid rgba(0,122,255,0.08);
-  font-size:12px;color:var(--text2);
-}
-.alt-option:last-child{border-bottom:none;}
-.alt-option-icon{font-size:15px;}
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: -2px;
+        }
 
-/* Post modal */
-.modal-overlay{
-  display:none;position:absolute;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.3);
-  z-index:100;
-  align-items:flex-end;
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-}
-.modal-overlay.show{display:flex;}
-.modal-sheet{
-  width:100%;
-  background:var(--bg);
-  border-radius:28px 28px 0 0;
-  padding:12px 22px 48px;
-  border:none;
-  animation:sheetUp 0.4s var(--spring);
-}
-@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:36px;height:5px;border-radius:3px;background:rgba(120,120,128,0.3);margin:0 auto 18px;}
-.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;}
-.modal-label{font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;display:block;}
-.modal-select{
-  width:100%;padding:12px 14px;border-radius:12px;
-  border:none;
-  background:rgba(120,120,128,0.06);
-  font-size:13px;color:var(--text);
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  margin-bottom:14px;outline:none;
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238e8e93' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;
-  padding-right:36px;
-  transition:background 0.2s;
-}
-.modal-select:focus{background:rgba(120,120,128,0.1);}
-.modal-crowd-btns{display:flex;gap:8px;margin-bottom:14px;}
-.crowd-btn{
-  flex:1;padding:10px 6px;border-radius:12px;
-  font-size:11px;font-weight:600;border:none;
-  cursor:pointer;text-align:center;
-  transition:all 0.2s var(--spring);
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  background:rgba(120,120,128,0.06);color:var(--text3);
-  -webkit-tap-highlight-color:transparent;
-}
-.crowd-btn:active{transform:scale(0.94);}
-.crowd-btn.selected.green{background:var(--green-bg);color:var(--green);}
-.crowd-btn.selected.yellow{background:var(--yellow-bg);color:var(--yellow);}
-.crowd-btn.selected.red{background:var(--red-bg);color:var(--red);}
-.modal-textarea{
-  width:100%;height:88px;padding:12px 14px;border-radius:12px;
-  border:none;
-  background:rgba(120,120,128,0.06);
-  font-size:13px;color:var(--text);
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  resize:none;outline:none;margin-bottom:16px;
-  transition:background 0.2s;
-}
-.modal-textarea:focus{background:rgba(120,120,128,0.1);}
-.modal-submit{
-  width:100%;padding:15px;border-radius:14px;
-  background:var(--accent);color:#fff;
-  font-size:15px;font-weight:600;border:none;
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  cursor:pointer;
-  transition:transform 0.2s var(--spring),box-shadow 0.2s;
-  box-shadow:0 4px 16px rgba(0,122,255,0.3);
-  -webkit-tap-highlight-color:transparent;
-}
-.modal-submit:active{transform:scale(0.96);}
-.modal-cancel{
-  width:100%;padding:12px;border-radius:14px;
-  background:transparent;color:var(--text3);
-  font-size:13px;font-weight:600;border:none;
-  font-family:-apple-system,'SF Pro Display','Noto Sans TC',sans-serif;
-  cursor:pointer;margin-top:8px;
-  -webkit-tap-highlight-color:transparent;
-}
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        
+        .guest-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
 
-/* ===========================
-   SETTINGS SCREEN - iOS Grouped
-=========================== */
-.settings-header{
-  padding:16px 22px 12px;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-}
-.settings-title{font-size:20px;font-weight:700;color:var(--text);}
-.settings-body{padding:16px 22px;}
-.settings-section-title{
-  font-size:13px;font-weight:400;color:var(--text3);
-  margin-bottom:6px;margin-top:20px;
-  padding-left:4px;
-}
-.settings-section-title:first-child{margin-top:0;}
-.settings-card{
-  background:var(--glass-bg);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  border-radius:var(--card-radius);overflow:hidden;
-  box-shadow:var(--glass-shadow);margin-bottom:8px;
-  border:none;
-}
-.settings-row{
-  display:flex;align-items:center;gap:14px;
-  padding:13px 16px;
-  border-bottom:0.5px solid var(--separator);
-  transition:background 0.15s;
-}
-.settings-row:active{background:rgba(120,120,128,0.06);}
-.settings-row:last-child{border-bottom:none;}
-.settings-row-icon{
-  font-size:18px;width:32px;height:32px;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:8px;
-  background:rgba(120,120,128,0.06);
-}
-.settings-row-info{flex:1;}
-.settings-row-title{font-size:14px;font-weight:500;color:var(--text);}
-.settings-row-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+        /* ================= Region Selection ================= */
+        .region-header {
+            text-align: center;
+            margin: 40px 0;
+        }
 
-/* Toggle → iOS Native size 51×31 */
-.toggle{
-  width:51px;height:31px;border-radius:16px;
-  background:#e9e9ea;
-  position:relative;cursor:pointer;
-  transition:background 0.3s var(--ease);
-  flex-shrink:0;
-  -webkit-tap-highlight-color:transparent;
-}
-.toggle.on{background:var(--green);}
-.toggle-thumb{
-  width:27px;height:27px;border-radius:50%;
-  background:#fff;
-  position:absolute;top:2px;left:2px;
-  transition:left 0.3s var(--ease);
-  box-shadow:0 2px 6px rgba(0,0,0,0.15),0 0 1px rgba(0,0,0,0.06);
-}
-.toggle.on .toggle-thumb{left:22px;}
-.settings-row-arrow{
-  font-size:14px;color:var(--text4);
-  font-weight:300;
-}
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
 
-/* Shared utils */
-.pad-section{padding:14px 22px 0;}
-.mb8{margin-bottom:8px;}
-.mb16{margin-bottom:16px;}
+        .region-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
 
-/* ===== GLOBAL INTERACTIVE FEEDBACK ===== */
-button,select,.crowd-btn,.dtab,.nav-item,.station-list-item,.schedule-card,.back-btn,.toggle{
-  -webkit-tap-highlight-color:transparent;
-}
-@keyframes fadeSlideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-</style>
+        .region-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        .region-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        /* ================= Feed & Post Cards ================= */
+        .region-filters {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 16px 0;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+        .region-filters::-webkit-scrollbar { display: none; }
+
+        .filter-pill {
+            padding: 8px 16px;
+            border-radius: 24px;
+            background: #EAEAEA;
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-pill.active, .filter-pill:hover {
+            background: var(--text-main);
+            color: #fff;
+        }
+
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .post-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .post-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .author-info { display: flex; align-items: center; gap: 12px; }
+        .author-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: var(--text-muted);
+        }
+        .author-meta { display: flex; flex-direction: column; }
+        .author-name { font-weight: 700; font-size: 1rem; }
+        .author-id { font-size: 0.8rem; color: var(--text-muted); }
+        .post-region-badge {
+            background: rgba(255, 95, 31, 0.1);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .post-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .post-content {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        
+        .post-content-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .post-content-text.expanded {
+            -webkit-line-clamp: unset;
+        }
+        .more-toggle {
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: none; /* JS will show if needed */
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .post-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .action-btn {
+            background: transparent;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        .action-btn:hover { color: var(--primary); transform: none; }
+        .action-btn.liked { color: var(--primary); }
+        
+        .post-time { font-size: 0.85rem; color: #999; }
+
+        /* ================= Comments System ================= */
+        .comments-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed #eee;
+            display: none; /* Toggled by JS */
+            animation: slideDownFade 0.3s ease-out;
+        }
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comment-item {
+            margin-bottom: 12px;
+            background: #F9F9F9;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+        .comment-author { font-weight: 700; }
+        .comment-text { font-size: 0.95rem; color: var(--text-main); }
+        
+        .comment-input-area { display: flex; gap: 8px; margin-top: 12px; }
+        .comment-input-area input { margin: 0; flex: 1; }
+        .comment-input-area button { padding: 8px 16px; width: auto; }
+
+        .guest-comment-msg {
+            text-align: center;
+            padding: 16px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= Floating Action Button ================= */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 16px rgba(255, 95, 31, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 90;
+        }
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            background: var(--primary-hover);
+        }
+        .fab.hidden { display: none; }
+
+        /* ================= New Post Page ================= */
+        .back-btn {
+            background: transparent;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .back-btn:hover { transform: translateX(-4px); }
+        
+        .post-form-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: #eee;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        #image-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* ================= Modals ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-card h3 { margin-bottom: 16px; font-size: 1.25rem; }
+        .modal-card p { margin-bottom: 24px; color: var(--text-muted); }
+        .modal-actions { display: flex; gap: 12px; flex-direction: column; }
+        
+        /* Lightbox */
+        #lightbox-modal .modal-card { max-width: 90vw; max-height: 90vh; background: transparent; box-shadow: none; padding: 0; }
+        #lightbox-img { max-width: 100%; max-height: 90vh; border-radius: 8px; object-fit: contain; }
+
+        /* ================= Profile Page ================= */
+        .profile-header {
+            text-align: center;
+            padding: 40px 0;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+        .profile-avatar-large {
+            width: 80px; height: 80px;
+            border-radius: 50%; background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 700; margin: 0 auto 16px auto;
+        }
+
+        @media (max-width: 600px) {
+            .post-card { padding: 16px; }
+            .container { padding: 12px; }
+        }
+    </style>
 </head>
 <body>
-<div class="phone">
-  <!-- Dynamic Island -->
-  <div class="notch"><div class="notch-cam"></div></div>
 
-  <!-- Status bar -->
-  <div class="status-bar">
-    <span style="font-family:'DM Mono','SF Mono',monospace;font-weight:600;">9:41</span>
-    <div class="status-icons">
-      <svg width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="4" width="3" height="7" rx="1" fill="#1c1c1e"/><rect x="4" y="2" width="3" height="9" rx="1" fill="#1c1c1e"/><rect x="8" y="0" width="3" height="11" rx="1" fill="#1c1c1e"/><rect x="12" y="0" width="3" height="11" rx="1" fill="#d1d1d6"/></svg>
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="#1c1c1e"><path d="M8 2.5C9.9 2.5 11.6 3.3 12.8 4.5L14 3.3C12.5 1.9 10.4 1 8 1S3.5 1.9 2 3.3L3.2 4.5C4.4 3.3 6.1 2.5 8 2.5Z" opacity="0.3"/><path d="M8 5.5C9.1 5.5 10.1 5.9 10.9 6.6L12.1 5.4C11 4.5 9.6 4 8 4S5 4.5 3.9 5.4L5.1 6.6C5.9 5.9 6.9 5.5 8 5.5Z" opacity="0.6"/><circle cx="8" cy="9.5" r="1.5"/></svg>
-      <div style="display:flex;align-items:center;gap:2px;">
-        <div style="width:22px;height:11px;border:1.5px solid #1c1c1e;border-radius:3px;padding:1.5px;"><div style="width:75%;height:100%;background:#1c1c1e;border-radius:1.5px;"></div></div>
-        <div style="width:2px;height:5px;background:#1c1c1e;border-radius:1px;margin-left:1px;"></div>
-      </div>
-    </div>
-  </div>
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar" id="main-nav" style="display: none;">
+        <div class="logo">TransitQ</div>
+        <div class="nav-right" id="nav-user-area">
+            <!-- Injected by JS -->
+        </div>
+    </nav>
 
-  <!-- ======================== HOME SCREEN ======================== -->
-  <div class="screen active" id="screen-home">
-    <div class="scroll">
-
-      <div class="home-header">
-        <div class="home-greeting">台灣好行 · 智慧預警</div>
-        <div class="home-title">Idiot <span>6670</span></div>
-        <div class="home-sub">南投客運 埔里 ⇄ 高鐵 ⇄ 日月潭</div>
-        <div class="live-dot"><div class="live-dot-circle"></div>LIVE · 即時監測中</div>
-      </div>
-
-      <!-- Route map -->
-      <div class="route-map-section">
-        <div class="section-title">路線即時燈號</div>
-        <div class="route-map-card">
-          <div class="route-svg-wrap">
-            <svg class="route-line-svg" viewBox="0 0 320 6" preserveAspectRatio="none" style="position:absolute;top:23px;left:0;width:100%;height:6px;z-index:0;">
-              <defs>
-                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#007aff"/>
-                  <stop offset="50%" stop-color="#ff9f0a"/>
-                  <stop offset="100%" stop-color="#34c759"/>
-                </linearGradient>
-              </defs>
-              <rect width="320" height="6" rx="3" fill="url(#lineGrad)" opacity="0.6"/>
-            </svg>
-            <!-- Station A -->
-            <div class="route-station" style="left:0;width:70px;" onclick="openStationDetail(0)">
-              <div class="station-bubble" style="background:rgba(0,122,255,0.1);box-shadow:0 4px 16px rgba(0,122,255,0.15);">
-                🚄
-                <div class="status-pill-sm" style="background:#007aff;"></div>
-              </div>
-              <div class="station-name-tag">高鐵台中站</div>
+    <!-- ================= VIEW 1: AUTH ================= -->
+    <div id="auth-view" class="view">
+        <div class="auth-container">
+            <h2 style="text-align: center; margin-bottom: 24px; color: var(--primary);">TransitQ</h2>
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">登入</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">註冊</div>
             </div>
-            <!-- Station B -->
-            <div class="route-station" style="left:50%;transform:translateX(-50%);width:72px;" onclick="openStationDetail(1)">
-              <div class="station-bubble" style="background:rgba(255,159,10,0.1);box-shadow:0 4px 16px rgba(255,159,10,0.15);">
-                🎓
-                <div class="status-pill-sm" style="background:#ff9f0a;"></div>
-              </div>
-              <div class="station-name-tag">暨南大學</div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+                <input type="text" id="login-id" class="mono" placeholder="用戶ID (例: user123)" required>
+                <input type="password" id="login-pwd" placeholder="密碼" required>
+                <div id="login-error" class="error-msg"></div>
+                <button type="submit" class="btn">登入</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+                <input type="text" id="reg-id" class="mono" placeholder="用戶ID (唯一，無空白)" required pattern="^\S+$" title="不能包含空白字元">
+                <input type="text" id="reg-name" placeholder="顯示名稱" required>
+                <input type="password" id="reg-pwd" placeholder="密碼" required>
+                <input type="password" id="reg-pwd2" placeholder="確認密碼" required>
+                <div id="reg-error" class="error-msg"></div>
+                <button type="submit" class="btn">註冊</button>
+            </form>
+
+            <a class="guest-link" onclick="continueAsGuest()">以訪客身分瀏覽 →</a>
+        </div>
+    </div>
+
+    <!-- ================= VIEW 2: REGION SELECTION ================= -->
+    <div id="region-view" class="view container">
+        <div class="region-header">
+            <h2 id="region-welcome-msg">您好！請選擇您目前的地區</h2>
+            <p style="color: var(--text-muted); margin-top: 8px;">這將幫助我們為您顯示最相關的排隊資訊</p>
+        </div>
+        <div class="region-grid" id="region-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- ================= VIEW 3: MAIN FEED ================= -->
+    <div id="feed-view" class="view container">
+        <div class="region-filters" id="feed-filters">
+            <div class="filter-pill active" onclick="setFeedFilter('All')">全部</div>
+            <!-- Populated by JS -->
+        </div>
+        <div class="post-list" id="feed-post-list">
+            <!-- Posts injected by JS -->
+        </div>
+    </div>
+
+    <!-- ================= VIEW 4: NEW POST ================= -->
+    <div id="new-post-view" class="view container">
+        <button class="back-btn" onclick="navigate('feed-view')">← 返回分享區</button>
+        <div class="post-form-card">
+            <h2 style="margin-bottom: 16px;">撰寫新貼文</h2>
+            <div class="user-badge" id="new-post-author"></div>
+            
+            <form id="new-post-form" onsubmit="handleNewPost(event)">
+                <select id="post-region" required>
+                    <option value="" disabled selected>選擇發布地區...</option>
+                    <!-- Populated by JS -->
+                </select>
+                <input type="text" id="post-title" placeholder="發布主題 (例：台中市 烏日區 - 公車排隊情況)" required>
+                <textarea id="post-content" rows="5" placeholder="描述目前的排隊狀況... (排隊人數、移動速度等)" required></textarea>
+                
+                <input type="file" id="post-image" accept="image/*" style="margin-bottom: 16px;" onchange="previewImage(event)">
+                <img id="image-preview" src="" alt="預覽圖">
+                
+                <button type="submit" class="btn" style="margin-top: 8px;">發布貼文</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= VIEW 5: PROFILE ================= -->
+    <div id="profile-view" class="view container">
+        <button class="back-btn" onclick="navigate('feed-view')">← 返回分享區</button>
+        <div class="profile-header">
+            <div class="profile-avatar-large" id="profile-avatar"></div>
+            <h2 id="profile-name"></h2>
+            <p class="mono" id="profile-id" style="color: var(--text-muted); margin: 8px 0;"></p>
+            <p id="profile-region" style="font-weight: 500;"></p>
+        </div>
+        <h3 style="margin-bottom: 20px;">我的貼文</h3>
+        <div class="post-list" id="profile-post-list">
+            <!-- Posts injected by JS -->
+        </div>
+    </div>
+
+    <!-- ================= FAB (New Post) ================= -->
+    <div class="fab" id="fab-btn" onclick="navigate('new-post-view')">＋</div>
+
+    <!-- ================= MODALS ================= -->
+    <!-- Guest Auth Prompt Modal -->
+    <div class="modal-overlay" id="auth-modal" onclick="closeModal('auth-modal', event)">
+        <div class="modal-card">
+            <h3>您尚未登入</h3>
+            <p>是否已有 TransitQ 平台帳號？登入後即可按讚與留言！</p>
+            <div class="modal-actions">
+                <button class="btn" onclick="logoutAndGoToAuth('login')">前往登入</button>
+                <button class="btn btn-outline" onclick="logoutAndGoToAuth('register')">前往註冊</button>
+                <button class="btn btn-outline" style="border: none;" onclick="closeModal('auth-modal')">取消</button>
             </div>
-            <!-- Station C -->
-            <div class="route-station" style="right:0;width:70px;" onclick="openStationDetail(2)">
-              <div class="station-bubble" style="background:rgba(255,59,48,0.1);box-shadow:0 4px 16px rgba(255,59,48,0.15);">
-                🏞️
-                <div class="status-pill-sm" style="background:#ff3b30;"></div>
-              </div>
-              <div class="station-name-tag">日月潭站</div>
-            </div>
-          </div>
-
-          <!-- Legend -->
-          <div style="display:flex;gap:16px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--separator);justify-content:center;">
-            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-weight:500;"><div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(52,199,89,0.4);"></div>空位充足</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-weight:500;"><div style="width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 6px rgba(255,159,10,0.4);"></div>部分佔位</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-weight:500;"><div style="width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px rgba(255,59,48,0.4);"></div>極度壅擠</div>
-          </div>
         </div>
-      </div>
-
-      <!-- Weather -->
-      <div class="weather-strip">
-        <div class="weather-icon">🌤️</div>
-        <div class="weather-info">
-          <div class="weather-main">日月潭 · 多雲偶晴</div>
-          <div class="weather-sub">中央氣象署 · 無強降雨 · 航行正常</div>
-        </div>
-        <div class="weather-right">
-          <div class="weather-temp">26°</div>
-          <div class="weather-rain">☂ 降雨 15%</div>
-        </div>
-      </div>
-
-      <!-- Alerts -->
-      <div class="home-alerts">
-        <div class="section-title" style="margin-top:16px;">即時狀況</div>
-        <div class="alert-card red">
-          <div class="alert-icon-sm">🚨</div>
-          <div class="alert-text-wrap">
-            <div class="alert-t">日月潭站 — 壅擠預警</div>
-            <div class="alert-d">t 檢定通過（p = 0.031），預估排隊 ~78 人，遠高於歷史常模，建議提早 20 分鐘抵達。</div>
-          </div>
-        </div>
-        <div class="alert-card yellow">
-          <div class="alert-icon-sm">⚠️</div>
-          <div class="alert-text-wrap">
-            <div class="alert-t">暨南大學站 — 適度壅擠</div>
-            <div class="alert-d">當前焦慮指數 3.8×，接近臨界值，建議留意 15:10 班次。</div>
-          </div>
-        </div>
-        <div class="alert-card green">
-          <div class="alert-icon-sm">✅</div>
-          <div class="alert-text-wrap">
-            <div class="alert-t">高鐵台中站 — 正常</div>
-            <div class="alert-d">配額水庫充足，14:30 班次仍有空位，可直接搭乘。</div>
-          </div>
-        </div>
-      </div>
-      <div style="height:18px;"></div>
-    </div>
-  </div>
-
-  <!-- ======================== STATION LIST SCREEN ======================== -->
-  <div class="screen" id="screen-station">
-    <div class="station-header">
-      <div class="station-header-title">選擇站點</div>
-      <div class="station-header-sub">點選站點查看即時人潮預估</div>
-    </div>
-    <div class="scroll">
-      <div class="station-list">
-        <div class="section-title" style="margin-top:4px;">所有站點</div>
-        <div class="station-list-item" onclick="openStationDetail(0)">
-          <div class="sli-icon">🚄</div>
-          <div class="sli-info">
-            <div class="sli-name">高鐵台中站</div>
-            <div class="sli-detail">台中市烏日區 · 下行起點站</div>
-          </div>
-          <div class="sli-status">
-            <div class="status-dot-lg green"></div>
-            <div class="sli-crowd-text green">空位充足</div>
-          </div>
-          <div class="sli-arrow">›</div>
-        </div>
-        <div class="station-list-item" onclick="openStationDetail(1)">
-          <div class="sli-icon">🎓</div>
-          <div class="sli-info">
-            <div class="sli-name">暨南大學校內站</div>
-            <div class="sli-detail">南投縣埔里鎮 · 校園通勤站</div>
-          </div>
-          <div class="sli-status">
-            <div class="status-dot-lg yellow"></div>
-            <div class="sli-crowd-text yellow">部分佔位</div>
-          </div>
-          <div class="sli-arrow">›</div>
-        </div>
-        <div class="station-list-item" onclick="openStationDetail(2)">
-          <div class="sli-icon">🏞️</div>
-          <div class="sli-info">
-            <div class="sli-name">日月潭水社轉運站</div>
-            <div class="sli-detail">南投縣魚池鄉 · 觀光終點站</div>
-          </div>
-          <div class="sli-status">
-            <div class="status-dot-lg red"></div>
-            <div class="sli-crowd-text red">極度壅擠</div>
-          </div>
-          <div class="sli-arrow">›</div>
-        </div>
-
-        <div class="section-title" style="margin-top:22px;">路線資訊</div>
-        <div style="background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border-radius:var(--card-radius);padding:16px 18px;box-shadow:var(--glass-shadow);">
-          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;">南投客運 6670 路線</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.8;">
-            🚄 高鐵台中站 → 🎓 暨南大學 → 🏞️ 日月潭<br>
-            全程約 70 分鐘・每日約 8 班次<br>
-            憑學生證可免費搭乘<br>
-            <span style="color:var(--blue);font-weight:600;">轉換率 β ≈ 10% · 單車最大座位 45</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======================== STATION DETAIL SCREEN ======================== -->
-  <div class="screen station-screen" id="screen-detail">
-    <div class="detail-header">
-      <div class="back-btn" onclick="goBack()">‹</div>
-      <div class="detail-header-info">
-        <div class="detail-station-name" id="detail-name">日月潭水社轉運站</div>
-        <div class="detail-station-sub" id="detail-sub">南投縣魚池鄉 · 即時推估</div>
-      </div>
     </div>
 
-    <div class="scroll">
-      <!-- Direction toggle → iOS segmented control -->
-      <div class="direction-toggle">
-        <div class="dtab active" id="dtab-go" onclick="switchDirection('go')">→ 去程（往日月潭）</div>
-        <div class="dtab" id="dtab-back" onclick="switchDirection('back')">← 回程（往高鐵）</div>
-      </div>
+    <!-- Image Lightbox Modal -->
+    <div class="modal-overlay" id="lightbox-modal" onclick="closeModal('lightbox-modal', event)">
+        <div class="modal-card" style="padding: 0;">
+            <img id="lightbox-img" src="" alt="Full size image">
+        </div>
+    </div>
 
-      <!-- Crowd overview -->
-      <div class="crowd-overview">
+    <script>
+        /* ================= Core Data & Config ================= */
+        const REGIONS = ['台北市', '新北市', '桃園市', '台中市', '台南市', '高雄市', '新竹市', '嘉義市'];
+        const REGION_ICONS = ['🚇', '🚌', '✈️', '🚄', '🛵', '🛳️', '🚈', '🚲'];
         
-        <!-- 【已修改】置頂現場狀況功能回報區塊 -->
-        <div id="report-wrap">
-          <button class="report-btn" id="report-btn" onclick="reportAccuracy()" style="margin-top:0;">
-            📝 回報現場狀況 — 預估是否符合？
-          </button>
-          <div class="report-choice" id="report-choice" style="display:none;">
-            <div class="report-choice-title">預估人潮是否符合您在現場觀察到的狀況？</div>
-            <div class="report-choice-btns">
-              <button class="report-yes" onclick="reportAnswer(true)">✅ 是</button>
-              <button class="report-no" onclick="reportAnswer(false)">❌ 否</button>
-            </div>
-          </div>
-        </div>
+        let state = {
+            currentView: 'auth-view',
+            currentUser: null,
+            feedFilter: 'All'
+        };
 
-        <div class="crowd-overview-top">
-          <div class="donut-wrap" id="donut-wrap">
-            <svg width="100" height="100" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(120,120,128,0.08)" stroke-width="10"/>
-              <circle cx="50" cy="50" r="38" fill="none" stroke="#ff3b30" stroke-width="10"
-                stroke-dasharray="238.76" stroke-dashoffset="47.75"
-                stroke-linecap="round" transform="rotate(-90 50 50)"
-                id="donut-circle" style="transition:stroke-dashoffset 0.8s ease,stroke 0.4s;"/>
-            </svg>
-            <div class="donut-center">
-              <div class="donut-pct" id="donut-pct" style="color:var(--red);">80%</div>
-              <div class="donut-lbl">滿載率</div>
-            </div>
-          </div>
-          <div class="crowd-stats">
-            <div class="crowd-stat-item">
-              <span class="csi-label">預估排隊人數</span>
-              <span class="csi-val" id="stat-queue" style="color:var(--red);">~78</span>
-            </div>
-            <div class="crowd-stat-item">
-              <span class="csi-label">焦慮指數</span>
-              <span class="csi-val" id="stat-anx" style="color:var(--yellow);">3.2×</span>
-            </div>
-            <div class="crowd-stat-item">
-              <span class="csi-label">時間延遲</span>
-              <span class="csi-val" style="color:var(--blue);">+20min</span>
-            </div>
-          </div>
-        </div>
+        // LocalStorage Helpers
+        const db = {
+            get: (key) => JSON.parse(localStorage.getItem(key)) || null,
+            set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+            init: () => {
+                if (!db.get('users')) db.set('users', []);
+                if (!db.get('posts')) db.set('posts', []);
+                if (!db.get('comments')) db.set('comments', []);
+                seedData();
+            }
+        };
 
-        <!-- Anxiety level indicator -->
-        <div class="analysis-section">
-          <div class="analysis-title">焦慮指數分析</div>
-          <div class="anx-level-card" id="anx-level-card">
-            <div class="anx-level-dot red" id="anx-dot">🔴</div>
-            <div class="anx-level-info">
-              <div class="anx-level-label red" id="anx-level-label">嚴重壅擠</div>
-              <div class="anx-level-desc" id="anx-level-desc">人潮遠超歷史均值，建議改搭其他班次或替代交通工具</div>
-            </div>
-            <div class="anx-level-val" id="anx-level-val" style="color:var(--red);">3.2×</div>
-          </div>
-          <div class="anx-legend">
-            <div class="anx-legend-item"><div class="anx-legend-dot" style="background:var(--green);"></div>≤ 2.0× 舒適</div>
-            <div class="anx-legend-item"><div class="anx-legend-dot" style="background:var(--yellow);"></div>2.1~3.5× 略擁擠</div>
-            <div class="anx-legend-item"><div class="anx-legend-dot" style="background:var(--red);"></div>> 3.5× 嚴重壅擠</div>
-          </div>
-        </div>
+        // Seed Data
+        function seedData() {
+            let users = db.get('users');
+            if (users.length === 0) {
+                const seedUsers = [
+                    { id: "transit_tom", name: "捷運湯姆", password: "123", region: "台北市", createdAt: Date.now() },
+                    { id: "bus_bella", name: "公車貝拉", password: "123", region: "台中市", createdAt: Date.now() },
+                    { id: "hsr_hana", name: "高鐵花奈", password: "123", region: "高雄市", createdAt: Date.now() }
+                ];
+                db.set('users', seedUsers);
 
-        <!-- Queue comparison -->
-        <div class="analysis-section">
-          <div class="queue-compare">
-            <div class="queue-compare-title">預估人潮 vs 歷史人潮</div>
-            <div class="queue-bar-row">
-              <div class="queue-bar-label">
-                <span class="queue-bar-name">📊 預估排隊</span>
-                <span class="queue-bar-val" id="queue-est-val" style="color:var(--red);">~78 人</span>
-              </div>
-              <div class="queue-bar-track"><div class="queue-bar-fill" id="queue-est-bar" style="width:78%;background:var(--red);"></div></div>
-            </div>
-            <div class="queue-bar-row" style="margin-bottom:0;">
-              <div class="queue-bar-label">
-                <span class="queue-bar-name">📋 歷史同期</span>
-                <span class="queue-bar-val" id="queue-hist-val" style="color:var(--blue);">~35 人</span>
-              </div>
-              <div class="queue-bar-track"><div class="queue-bar-fill" id="queue-hist-bar" style="width:35%;background:var(--blue);"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
+                const now = Date.now();
+                const hr = 60 * 60 * 1000;
+                const seedPosts = [
+                    { postId: "p1", authorId: "transit_tom", authorName: "捷運湯姆", region: "台北市", title: "台北車站高鐵售票處 排隊狀況", content: "目前自動售票機排隊人潮大約有20人左右，移動速度緩慢，建議趕時間的旅客直接使用手機App購票進站！", imageBase64: "", likes: ["bus_bella"], createdAt: now - (2 * hr) },
+                    { postId: "p2", authorId: "bus_bella", authorName: "公車貝拉", region: "台中市", title: "台灣大道 300路公車 (科博館站)", content: "下班尖峰時刻，目前候車亭已經擠滿人了，剛剛連續兩班都客滿上不去，建議大家改搭其他替代路線或稍晚再出門。", imageBase64: "", likes: ["transit_tom", "hsr_hana"], createdAt: now - (5 * 60 * 1000) },
+                    { postId: "p3", authorId: "hsr_hana", authorName: "高鐵花奈", region: "高雄市", title: "世運主場館演場會散場 - 捷運紅線", content: "演唱會剛結束，目前世運站外面排隊進站的人龍已經排到馬路上了。高捷有加開班次，站務人員引導順暢，大概排20分鐘可以進站。", imageBase64: "", likes: [], createdAt: now - (24 * hr) },
+                    { postId: "p4", authorId: "transit_tom", authorName: "捷運湯姆", region: "新北市", title: "板橋客運站 返鄉人潮", content: "往南部的客運幾乎班班客滿，現場候補可能要等超過一小時。請大家提早線上買票。", imageBase64: "", likes: [], createdAt: now - (15 * 60 * 1000) },
+                    { postId: "p5", authorId: "bus_bella", authorName: "公車貝拉", region: "台中市", title: "高鐵台中站 計程車排隊", content: "一樓計程車排隊區目前約有50人，不過車輛來得很快，消化速度不錯，預計等候10分鐘內可以上車。", imageBase64: "", likes: ["hsr_hana"], createdAt: now - (3 * hr) }
+                ];
+                db.set('posts', seedPosts);
+                
+                const seedComments = [
+                    { commentId: "c1", postId: "p2", authorId: "transit_tom", authorName: "捷運湯姆", content: "辛苦了！300路尖峰時間真的超難擠上去。", createdAt: now - (2 * 60 * 1000) }
+                ];
+                db.set('comments', seedComments);
+            }
+        }
 
-      <div class="section-title" style="padding:0 22px;margin-bottom:10px;">班次預報</div>
-      <div class="schedule-section" id="schedule-list"></div>
-      <div style="height:18px;"></div>
-    </div>
-  </div>
+        /* ================= Utils ================= */
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        
+        function formatRelativeTime(timestamp) {
+            const diff = Date.now() - timestamp;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return '剛剛';
+            if (mins < 60) return `${mins} 分鐘前`;
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return `${hrs} 小時前`;
+            return `${Math.floor(hrs / 24)} 天前`;
+        }
 
-  <!-- ======================== MESSAGES SCREEN ======================== -->
-  <div class="screen" id="screen-messages">
-    <div class="msg-header">
-      <div class="msg-header-title">訊息欄</div>
-      <button class="post-btn" onclick="openPostModal()">＋ 發布狀況</button>
-    </div>
-    <div class="scroll">
-      <div class="msg-list">
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
 
-        <div class="msg-card system-alert">
-          <div class="msg-top">
-            <div class="msg-avatar">🚨</div>
-            <div class="msg-meta">
-              <div class="msg-author" style="color:var(--red);">系統推播通知</div>
-              <div class="msg-time">14:22 · 剛剛</div>
-            </div>
-            <div class="msg-station-tag red">日月潭站</div>
-          </div>
-          <div class="msg-body">【壅擠警報】日月潭水社轉運站人潮超出臨界值，t 檢定確認異常（p = 0.031）。預估排隊人數達 78 人，建議立即改乘替代交通方案。</div>
-          <div class="alt-transport">
-            <div class="alt-title">🔀 替代交通方案</div>
-            <div class="alt-option"><span class="alt-option-icon">🚕</span>台灣好行集集線 — 候車時間約 12 分鐘</div>
-            <div class="alt-option"><span class="alt-option-icon">🚌</span>埔里客運 6658 — 較不擁擠，每 30 分一班</div>
-            <div class="alt-option"><span class="alt-option-icon">🚲</span>YouBike 2.0 — 日月潭碼頭附近有 8 輛可借</div>
-          </div>
-          <div class="msg-footer">
-            <div class="msg-like-btn">❤️ 24 人覺得有幫助</div>
-            <button class="msg-delete-btn" onclick="deleteMsg(this)">🗑 刪除</button>
-          </div>
-        </div>
+        /* ================= Navigation & Lifecycle ================= */
+        function initApp() {
+            db.init();
+            state.currentUser = db.get('currentUser');
+            buildRegionUI();
+            
+            if (state.currentUser) {
+                if (state.currentUser.region) {
+                    navigate('feed-view');
+                } else {
+                    navigate('region-view');
+                }
+            } else {
+                navigate('auth-view');
+            }
+        }
 
-        <div class="msg-card system-warn">
-          <div class="msg-top">
-            <div class="msg-avatar">⚠️</div>
-            <div class="msg-meta">
-              <div class="msg-author" style="color:var(--yellow);">系統自動預警</div>
-              <div class="msg-time">13:55 · 30 分鐘前</div>
-            </div>
-            <div class="msg-station-tag yellow">暨南大學站</div>
-          </div>
-          <div class="msg-body">暨南大學站焦慮指數接近臨界值（3.8×），15:10 班次預估座位吃緊，建議提前前往候車或改搭 14:30 班次。</div>
-          <div class="msg-footer">
-            <div class="msg-like-btn">❤️ 11 人覺得有幫助</div>
-            <button class="msg-delete-btn" onclick="deleteMsg(this)">🗑 刪除</button>
-          </div>
-        </div>
+        function navigate(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            state.currentView = viewId;
+            window.scrollTo(0,0);
 
-        <div class="msg-card">
-          <div class="msg-top">
-            <div class="msg-avatar">👨‍🎓</div>
-            <div class="msg-meta">
-              <div class="msg-author">暨大學生 A</div>
-              <div class="msg-time">14:15 · 8 分鐘前</div>
-            </div>
-            <div class="msg-station-tag red">日月潭站</div>
-          </div>
-          <div class="msg-body">水社這裡真的爆了，排隊到對面店家門口了，今天有假日團體客，比預想還多😭 建議下班次再來</div>
-          <div class="msg-footer">
-            <div class="msg-like-btn" onclick="likeMsg(this)">🤍 8 覺得準確</div>
-            <button class="msg-delete-btn" onclick="deleteMsg(this)">🗑 刪除</button>
-          </div>
-        </div>
+            // Update Navbar Visibility
+            const nav = document.getElementById('main-nav');
+            if (viewId === 'auth-view') {
+                nav.style.display = 'none';
+            } else {
+                nav.style.display = 'flex';
+                updateNavbar();
+            }
 
-        <div class="msg-card">
-          <div class="msg-top">
-            <div class="msg-avatar">👩</div>
-            <div class="msg-meta">
-              <div class="msg-author">旅客 B</div>
-              <div class="msg-time">13:40 · 43 分鐘前</div>
-            </div>
-            <div class="msg-station-tag green">高鐵台中站</div>
-          </div>
-          <div class="msg-body">高鐵這邊很順，14:30 班次空位超多，大家放心來！司機說回程也沒什麼問題 👍</div>
-          <div class="msg-footer">
-            <div class="msg-like-btn" onclick="likeMsg(this)">🤍 5 覺得準確</div>
-            <button class="msg-delete-btn" onclick="deleteMsg(this)">🗑 刪除</button>
-          </div>
-        </div>
+            // Update FAB
+            const fab = document.getElementById('fab-btn');
+            if (state.currentUser && (viewId === 'feed-view' || viewId === 'profile-view')) {
+                fab.classList.remove('hidden');
+            } else {
+                fab.classList.add('hidden');
+            }
 
-        <div class="msg-card">
-          <div class="msg-top">
-            <div class="msg-avatar">👨</div>
-            <div class="msg-meta">
-              <div class="msg-author">暨大教職員 C</div>
-              <div class="msg-time">13:10 · 1 小時前</div>
-            </div>
-            <div class="msg-station-tag yellow">暨南大學站</div>
-          </div>
-          <div class="msg-body">校內站今天還好，不過下午 3 點後的班次可能會因為下課潮變多，大家留意一下</div>
-          <div class="msg-footer">
-            <div class="msg-like-btn" onclick="likeMsg(this)">🤍 3 覺得準確</div>
-            <button class="msg-delete-btn" onclick="deleteMsg(this)">🗑 刪除</button>
-          </div>
-        </div>
+            // View Specific Logic
+            if (viewId === 'region-view') {
+                document.getElementById('region-welcome-msg').innerText = `您好，${state.currentUser.name}！請選擇您目前的地區`;
+            }
+            if (viewId === 'feed-view') {
+                renderFeed();
+            }
+            if (viewId === 'new-post-view') {
+                document.getElementById('new-post-form').reset();
+                document.getElementById('image-preview').style.display = 'none';
+                document.getElementById('new-post-author').innerHTML = `<span class="mono">${state.currentUser.id}</span> · ${state.currentUser.name}`;
+                // Auto-select user region
+                if(state.currentUser.region) {
+                    document.getElementById('post-region').value = state.currentUser.region;
+                }
+            }
+            if (viewId === 'profile-view') {
+                renderProfile();
+            }
+        }
 
-      </div>
-    </div>
+        function updateNavbar() {
+            const area = document.getElementById('nav-user-area');
+            if (state.currentUser) {
+                area.innerHTML = `
+                    <div class="user-profile-btn" onclick="navigate('profile-view')">
+                        👤 ${state.currentUser.name}
+                    </div>
+                    <button class="logout-btn" onclick="handleLogout()">登出</button>
+                `;
+            } else {
+                area.innerHTML = `
+                    <button class="btn" style="padding: 6px 16px; width:auto;" onclick="logoutAndGoToAuth('login')">登入 / 註冊</button>
+                `;
+            }
+        }
 
-    <!-- Post modal -->
-    <div class="modal-overlay" id="postModal">
-      <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-title">發布站點狀況</div>
-        <label class="modal-label">選擇站點</label>
-        <select class="modal-select">
-          <option>高鐵台中站</option>
-          <option>暨南大學校內站</option>
-          <option>日月潭水社轉運站</option>
-        </select>
-        <label class="modal-label">現場狀況</label>
-        <div class="modal-crowd-btns">
-          <div class="crowd-btn" onclick="selectCrowd(this,'green')">✅ 空位充足</div>
-          <div class="crowd-btn" onclick="selectCrowd(this,'yellow')">⚠️ 部分佔位</div>
-          <div class="crowd-btn" onclick="selectCrowd(this,'red')">🚨 非常壅擠</div>
-        </div>
-        <label class="modal-label">補充說明（選填）</label>
-        <textarea class="modal-textarea" placeholder="e.g. 今天有大型旅遊團，排隊到門口了…"></textarea>
-        <button class="modal-submit" onclick="submitPost()">發布</button>
-        <button class="modal-cancel" onclick="closePostModal()">取消</button>
-      </div>
-    </div>
-  </div>
+        /* ================= Auth Logic ================= */
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            if(tab === 'login') {
+                document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+                document.getElementById('login-form').classList.add('active');
+            } else {
+                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+                document.getElementById('register-form').classList.add('active');
+            }
+            document.getElementById('login-error').innerText = '';
+            document.getElementById('reg-error').innerText = '';
+        }
 
-  <!-- ======================== SETTINGS SCREEN ======================== -->
-  <div class="screen" id="screen-settings">
-    <div class="settings-header">
-      <div class="settings-title">設定</div>
-    </div>
-    <div class="scroll">
-      <div class="settings-body">
+        function handleRegister(e) {
+            e.preventDefault();
+            const id = document.getElementById('reg-id').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const pwd = document.getElementById('reg-pwd').value;
+            const pwd2 = document.getElementById('reg-pwd2').value;
+            const errDiv = document.getElementById('reg-error');
 
-        <div class="settings-section-title">通知設定</div>
-        <div class="settings-card">
-          <div class="settings-row">
-            <div class="settings-row-icon">🔔</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">壅擠推播通知</div>
-              <div class="settings-row-sub">站點超過臨界值時主動通知</div>
-            </div>
-            <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
-          </div>
-          <div class="settings-row">
-            <div class="settings-row-icon">🌧️</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">極端氣象警示</div>
-              <div class="settings-row-sub">強降雨或禁航時強制推播</div>
-            </div>
-            <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
-          </div>
-          <div class="settings-row">
-            <div class="settings-row-icon">🚌</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">班次即將到站提醒</div>
-              <div class="settings-row-sub">提前 10 分鐘提醒</div>
-            </div>
-            <div class="toggle" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
-          </div>
-        </div>
+            if (pwd !== pwd2) return errDiv.innerText = "兩次密碼輸入不一致";
+            
+            let users = db.get('users');
+            if (users.find(u => u.id === id)) return errDiv.innerText = "此用戶 ID 已被使用";
 
-        <div class="settings-section-title">偏好設定</div>
-        <div class="settings-card">
-          <div class="settings-row">
-            <div class="settings-row-icon">📍</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">預設站點</div>
-              <div class="settings-row-sub">日月潭水社轉運站</div>
-            </div>
-            <div class="settings-row-arrow">›</div>
-          </div>
-          <div class="settings-row">
-            <div class="settings-row-icon">🎓</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">身份設定</div>
-              <div class="settings-row-sub">暨南大學學生（持學生證）</div>
-            </div>
-            <div class="settings-row-arrow">›</div>
-          </div>
-          <div class="settings-row">
-            <div class="settings-row-icon">🚨</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">壅擠警戒閾值</div>
-              <div class="settings-row-sub">焦慮指數 &gt; 3.0（預設）</div>
-            </div>
-            <div class="settings-row-arrow">›</div>
-          </div>
-        </div>
+            const newUser = { id, name, password: pwd, region: null, createdAt: Date.now() };
+            users.push(newUser);
+            db.set('users', users);
+            
+            loginUser(newUser);
+        }
 
-        <div class="settings-section-title">關於系統</div>
-        <div class="settings-card">
-          <div class="settings-row">
-            <div class="settings-row-icon">📊</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">數據來源</div>
-              <div class="settings-row-sub">交通部觀光署 · Google Maps · 中央氣象署</div>
-            </div>
-            <div class="settings-row-arrow">›</div>
-          </div>
-          <div class="settings-row">
-            <div class="settings-row-icon">🔒</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">隱私說明</div>
-              <div class="settings-row-sub">設備 ID 以車牌+日期單向雜湊，不儲存個資</div>
-            </div>
-            <div class="settings-row-arrow">›</div>
-          </div>
-          <div class="settings-row">
-            <div class="settings-row-icon">ℹ️</div>
-            <div class="settings-row-info">
-              <div class="settings-row-title">版本</div>
-              <div class="settings-row-sub">Idiot 6670 v4.0 · MIS 期末專案</div>
-            </div>
-          </div>
-        </div>
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('login-id').value.trim();
+            const pwd = document.getElementById('login-pwd').value;
+            const errDiv = document.getElementById('login-error');
 
-        <div style="height:14px;"></div>
-      </div>
-    </div>
-  </div>
+            let users = db.get('users');
+            let user = users.find(u => u.id === id);
+            
+            if (!user) return errDiv.innerText = "找不到此用戶 ID";
+            if (user.password !== pwd) return errDiv.innerText = "密碼錯誤";
 
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div class="nav-item active" id="nav-home" onclick="switchScreen('home')">
-      <div class="nav-icon">🏠</div>
-      <div class="nav-label">首頁</div>
-    </div>
-    <div class="nav-item" id="nav-station" onclick="switchScreen('station')">
-      <div class="nav-icon">📍</div>
-      <div class="nav-label">站點</div>
-    </div>
-    <div class="nav-item" id="nav-messages" onclick="switchScreen('messages')">
-      <div class="nav-icon">💬</div>
-      <div class="nav-label">訊息欄</div>
-    </div>
-    <div class="nav-item" id="nav-settings" onclick="switchScreen('settings')">
-      <div class="nav-icon">⚙️</div>
-      <div class="nav-label">設定</div>
-    </div>
-  </div>
+            loginUser(user);
+        }
 
-</div>
+        function loginUser(user) {
+            const { password, ...safeUser } = user;
+            state.currentUser = safeUser;
+            db.set('currentUser', safeUser);
+            if (!safeUser.region) {
+                navigate('region-view');
+            } else {
+                navigate('feed-view');
+            }
+            closeModal('auth-modal');
+        }
 
-<script>
-// ---- Data ----
-const stations = [
-  {
-    name:'高鐵台中站',sub:'台中市烏日區 · 下行起點站',
-    pct:28, pctColor:'var(--green)',
-    queue:'~12', queueNum:12, histQueue:15, histQueueLabel:'~15 人',
-    anx:'1.8×', anxNum:1.8, anxColor:'var(--green)',
-    anxLevel:'green', anxLevelLabel:'舒適順暢', anxEmoji:'🟢',
-    anxExplain:'人潮低於歷史均值，可放心搭乘，無需額外等候時間',
-    donutOffset:172,donutColor:'var(--green)',
-    glowColor:'rgba(52,199,89,0.12)',
-    schedules:[
-      {time:'14:30',remain:'距今 8 分',route:'6670 高鐵→日月潭',detail:'45 座・憑學生證免費',seats:'空位充足',seatClass:'green',next:true},
-      {time:'15:20',remain:'距今 58 分',route:'6670 高鐵→日月潭',detail:'45 座・正常班次',seats:'空位充足',seatClass:'green',next:false},
-      {time:'16:10',remain:'距今 1h48m',route:'6670 高鐵→日月潭',detail:'45 座・下午尖峰',seats:'部分佔位',seatClass:'yellow',next:false},
-      {time:'17:00',remain:'距今 2h38m',route:'6670 高鐵→日月潭',detail:'45 座・配額遞減後段',seats:'空位充足',seatClass:'green',next:false},
-    ]
-  },
-  {
-    name:'暨南大學校內站',sub:'南投縣埔里鎮 · 校園通勤站',
-    pct:58, pctColor:'var(--yellow)',
-    queue:'~31', queueNum:31, histQueue:20, histQueueLabel:'~20 人',
-    anx:'3.8×', anxNum:3.8, anxColor:'var(--yellow)',
-    anxLevel:'red', anxLevelLabel:'嚴重壅擠', anxEmoji:'🔴',
-    anxExplain:'接近臨界值，下課潮湧入中，建議提前候車或改搭較早班次',
-    donutOffset:100,donutColor:'var(--yellow)',
-    glowColor:'rgba(255,159,10,0.12)',
-    schedules:[
-      {time:'14:38',remain:'距今 16 分',route:'6670 暨大→高鐵',detail:'45 座・下課潮高峰',seats:'部分佔位',seatClass:'yellow',next:true},
-      {time:'15:28',remain:'距今 1h6m',route:'6670 暨大→高鐵',detail:'45 座・推估壅擠',seats:'部分佔位',seatClass:'yellow',next:false},
-      {time:'16:18',remain:'距今 1h56m',route:'6670 暨大→高鐵',detail:'45 座・晚尖峰',seats:'極度壅擠',seatClass:'red',next:false},
-      {time:'17:08',remain:'距今 2h46m',route:'6670 暨大→高鐵',detail:'45 座・末班附近',seats:'空位充足',seatClass:'green',next:false},
-    ]
-  },
-  {
-    name:'日月潭水社轉運站',sub:'南投縣魚池鄉 · 觀光終點站',
-    pct:80, pctColor:'var(--red)',
-    queue:'~78', queueNum:78, histQueue:35, histQueueLabel:'~35 人',
-    anx:'3.2×', anxNum:3.2, anxColor:'var(--red)',
-    anxLevel:'yellow', anxLevelLabel:'略為擁擠', anxEmoji:'🟡',
-    anxExplain:'人潮略高於歷史均值，建議提早 20 分鐘抵達以確保座位',
-    donutOffset:47.75,donutColor:'var(--red)',
-    glowColor:'rgba(255,59,48,0.12)',
-    schedules:[
-      {time:'14:30',remain:'距今 8 分',route:'6670 水社→高鐵',detail:'45 座・建議速往',seats:'空位充足',seatClass:'green',next:true},
-      {time:'15:10',remain:'距今 48 分',route:'6670 水社→高鐵',detail:'45 座・推估偏多',seats:'部分佔位',seatClass:'yellow',next:false},
-      {time:'16:00',remain:'距今 1h38m',route:'6670 水社→高鐵',detail:'45 座・尖峰時段',seats:'極度壅擠',seatClass:'red',next:false},
-      {time:'17:20',remain:'距今 2h58m',route:'6670 水社→高鐵',detail:'45 座・配額遞減後段',seats:'空位充足',seatClass:'green',next:false},
-    ]
-  }
-];
+        function handleLogout() {
+            state.currentUser = null;
+            db.set('currentUser', null);
+            navigate('auth-view');
+            switchAuthTab('login');
+        }
 
-let currentStation = 2;
-let prevScreen = 'station';
+        function continueAsGuest() {
+            state.currentUser = null;
+            db.set('currentUser', null);
+            navigate('feed-view');
+        }
 
-function switchScreen(name) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const navEl = document.getElementById('nav-'+name);
-  if(navEl) navEl.classList.add('active');
-}
+        function logoutAndGoToAuth(tab) {
+            closeModal('auth-modal');
+            state.currentUser = null;
+            db.set('currentUser', null);
+            navigate('auth-view');
+            switchAuthTab(tab);
+        }
 
-function openStationDetail(idx) {
-  currentStation = idx;
-  const s = stations[idx];
-  prevScreen = document.querySelector('.nav-item.active')?.id?.replace('nav-','') || 'station';
+        /* ================= Region Selection ================= */
+        function buildRegionUI() {
+            const grid = document.getElementById('region-grid');
+            const select = document.getElementById('post-region');
+            const filters = document.getElementById('feed-filters');
+            
+            grid.innerHTML = '';
+            select.innerHTML = '<option value="" disabled selected>選擇發布地區...</option>';
+            
+            // Keep the 'All' filter pill
+            let filterHtml = `<div class="filter-pill active" onclick="setFeedFilter('All')">全部</div>`;
 
-  document.getElementById('detail-name').textContent = s.name;
-  document.getElementById('detail-sub').textContent = s.sub;
+            REGIONS.forEach((r, idx) => {
+                // Region Cards
+                grid.innerHTML += `
+                    <div class="region-card" onclick="selectRegion('${r}')">
+                        <div class="region-icon">${REGION_ICONS[idx]}</div>
+                        <div style="font-weight: 700;">${r}</div>
+                    </div>
+                `;
+                // Select Options
+                select.innerHTML += `<option value="${r}">${r}</option>`;
+                // Filters
+                filterHtml += `<div class="filter-pill" onclick="setFeedFilter('${r}')">${r}</div>`;
+            });
+            filters.innerHTML = filterHtml;
+        }
 
-  // Donut
-  const circle = document.getElementById('donut-circle');
-  circle.style.stroke = s.donutColor;
-  circle.style.strokeDashoffset = s.donutOffset;
-  document.getElementById('donut-pct').textContent = s.pct+'%';
-  document.getElementById('donut-pct').style.color = s.pctColor;
+        function selectRegion(region) {
+            state.currentUser.region = region;
+            db.set('currentUser', state.currentUser);
+            // Update user in DB
+            let users = db.get('users');
+            let uIdx = users.findIndex(u => u.id === state.currentUser.id);
+            if(uIdx > -1) {
+                users[uIdx].region = region;
+                db.set('users', users);
+            }
+            state.feedFilter = region; // Auto filter to their region
+            navigate('feed-view');
+        }
 
-  // Donut ambient glow
-  const donutWrap = document.getElementById('donut-wrap');
-  if(donutWrap) donutWrap.style.setProperty('--glow',s.glowColor);
+        /* ================= Feed & Posts ================= */
+        function setFeedFilter(region) {
+            state.feedFilter = region;
+            document.querySelectorAll('#feed-filters .filter-pill').forEach(el => {
+                el.classList.remove('active');
+                if (el.innerText === region) el.classList.add('active');
+            });
+            renderFeed();
+        }
 
-  document.getElementById('stat-queue').textContent = s.queue;
-  document.getElementById('stat-queue').style.color = s.pctColor;
-  document.getElementById('stat-anx').textContent = s.anx;
-  document.getElementById('stat-anx').style.color = s.anxColor;
+        function renderFeed() {
+            let posts = db.get('posts').sort((a,b) => b.createdAt - a.createdAt);
+            if (state.feedFilter !== 'All') {
+                posts = posts.filter(p => p.region === state.feedFilter);
+            }
+            renderPostList('feed-post-list', posts);
+        }
 
-  // Anxiety level indicator
-  const anxDot = document.getElementById('anx-dot');
-  anxDot.className = 'anx-level-dot ' + s.anxLevel;
-  anxDot.textContent = s.anxEmoji;
-  const anxLabel = document.getElementById('anx-level-label');
-  anxLabel.className = 'anx-level-label ' + s.anxLevel;
-  anxLabel.textContent = s.anxLevelLabel;
-  document.getElementById('anx-level-desc').textContent = s.anxExplain;
-  const anxVal = document.getElementById('anx-level-val');
-  anxVal.textContent = s.anx;
-  anxVal.style.color = s.anxColor;
+        function renderProfile() {
+            document.getElementById('profile-avatar').innerText = state.currentUser.name.charAt(0);
+            document.getElementById('profile-name').innerText = state.currentUser.name;
+            document.getElementById('profile-id').innerText = `@${state.currentUser.id}`;
+            document.getElementById('profile-region').innerText = `📍 主要活動地區：${state.currentUser.region || '未設定'}`;
 
-  // Queue comparison bars
-  document.getElementById('queue-est-bar').style.width = (s.queueNum/100*100)+'%';
-  document.getElementById('queue-est-bar').style.background = s.pctColor;
-  document.getElementById('queue-est-val').textContent = s.queue + ' 人';
-  document.getElementById('queue-est-val').style.color = s.pctColor;
-  document.getElementById('queue-hist-bar').style.width = (s.histQueue/100*100)+'%';
-  document.getElementById('queue-hist-val').textContent = s.histQueueLabel;
+            let posts = db.get('posts')
+                          .filter(p => p.authorId === state.currentUser.id)
+                          .sort((a,b) => b.createdAt - a.createdAt);
+            
+            if(posts.length === 0) {
+                document.getElementById('profile-post-list').innerHTML = `<p style="text-align:center; color:var(--text-muted);">尚未發布任何貼文</p>`;
+            } else {
+                renderPostList('profile-post-list', posts);
+            }
+        }
 
-  // 【已修改】開啟詳細資料時，重置頂部回報按鈕的顯示狀態
-  const reportWrap = document.getElementById('report-wrap');
-  reportWrap.style.display = 'block';
-  reportWrap.style.animation = '';
-  document.getElementById('report-btn').style.display = 'flex';
-  document.getElementById('report-choice').style.display = 'none';
+        function renderPostList(containerId, posts) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
 
-  // Reset direction tab
-  document.getElementById('dtab-go').classList.add('active');
-  document.getElementById('dtab-back').classList.remove('active');
+            if (posts.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 40px 0;">目前沒有相關的排隊資訊。</div>`;
+                return;
+            }
 
-  renderSchedule(s.schedules);
+            const comments = db.get('comments');
 
-  document.querySelectorAll('.screen').forEach(sc=>sc.classList.remove('active'));
-  document.getElementById('screen-detail').classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-}
+            posts.forEach(post => {
+                const isLiked = state.currentUser && post.likes.includes(state.currentUser.id);
+                const commentCount = comments.filter(c => c.postId === post.postId).length;
+                const hasImage = post.imageBase64 && post.imageBase64.length > 0;
+                
+                // Truncate logic
+                // Using CSS line-clamp, but adding JS toggle
+                const contentHtml = `
+                    <div class="post-content">
+                        <div class="post-content-text" id="text-${post.postId}">${post.content}</div>
+                        ${post.content.length > 100 ? `<div class="more-toggle" id="more-${post.postId}" onclick="toggleText(event, '${post.postId}')">...展開更多</div>` : ''}
+                    </div>
+                `;
 
-function renderSchedule(schedules) {
-  const list = document.getElementById('schedule-list');
-  list.innerHTML = schedules.map(sc => `
-    <div class="schedule-card ${sc.next?'highlight':''}">
-      <div class="sc-time">
-        <div class="sc-time-main">${sc.time}</div>
-        <div class="sc-time-remain">${sc.remain}</div>
-      </div>
-      <div class="sc-info">
-        <div class="sc-route">🚌 ${sc.route}</div>
-        <div class="sc-detail">${sc.detail}</div>
-      </div>
-      <div class="sc-right">
-        <div class="seat-pill ${sc.seatClass}">${sc.seats}</div>
-        ${sc.next ? '<div class="next-tag-light">▲ 下一班</div>' : ''}
-      </div>
-    </div>
-  `).join('');
-}
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div class="author-info">
+                            <div class="author-avatar">${post.authorName.charAt(0)}</div>
+                            <div class="author-meta">
+                                <span class="author-name">${post.authorName}</span>
+                                <span class="author-id mono">@${post.authorId}</span>
+                            </div>
+                        </div>
+                        <div class="post-region-badge">${post.region}</div>
+                    </div>
+                    <div class="post-title">${post.title}</div>
+                    ${contentHtml}
+                    ${hasImage ? `<img src="${post.imageBase64}" class="post-image" onclick="openLightbox('${post.imageBase64}')" alt="Post image">` : ''}
+                    <div class="post-footer">
+                        <div class="post-actions">
+                            <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.postId}')">
+                                ${isLiked ? '❤️' : '🤍'} <span id="like-count-${post.postId}">${post.likes.length}</span>
+                            </button>
+                            <button class="action-btn" onclick="toggleComments('${post.postId}')">
+                                💬 <span id="comment-count-${post.postId}">${commentCount}</span>
+                            </button>
+                        </div>
+                        <div class="post-time mono">${formatRelativeTime(post.createdAt)}</div>
+                    </div>
+                    <div class="comments-section" id="comments-${post.postId}">
+                        <div class="comments-list" id="clist-${post.postId}"></div>
+                        ${state.currentUser ? `
+                            <form class="comment-input-area" onsubmit="addComment(event, '${post.postId}')">
+                                <input type="text" id="cinput-${post.postId}" placeholder="留言回覆..." required>
+                                <button type="submit" class="btn">送出</button>
+                            </form>
+                        ` : `
+                            <div class="guest-comment-msg">
+                                登入後即可留言 <a onclick="openModal('auth-modal')">前往登入</a>
+                            </div>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
 
-function goBack() {
-  switchScreen(prevScreen === 'station' ? 'station' : 'home');
-  if(prevScreen === 'station') document.getElementById('nav-station').classList.add('active');
-  else document.getElementById('nav-home').classList.add('active');
-}
+                // Show "more" button if text actually overflows
+                setTimeout(() => {
+                    const textEl = document.getElementById(`text-${post.postId}`);
+                    const moreBtn = document.getElementById(`more-${post.postId}`);
+                    if(textEl && moreBtn) {
+                        if(textEl.scrollHeight > textEl.clientHeight) {
+                            moreBtn.style.display = 'block';
+                        }
+                    }
+                }, 0);
+            });
+        }
 
-function switchDirection(dir) {
-  document.getElementById('dtab-go').classList.toggle('active', dir==='go');
-  document.getElementById('dtab-back').classList.toggle('active', dir==='back');
-  const s = stations[currentStation];
-  if(dir === 'back') {
-    const reversed = s.schedules.map((sc,i)=>({...sc,route:sc.route.replace('→','←').split('←').reverse().join('←'),next:i===0}));
-    renderSchedule(reversed);
-  } else {
-    renderSchedule(s.schedules);
-  }
-}
+        function toggleText(e, postId) {
+            e.stopPropagation();
+            const textEl = document.getElementById(`text-${postId}`);
+            const btnEl = document.getElementById(`more-${postId}`);
+            textEl.classList.toggle('expanded');
+            btnEl.innerText = textEl.classList.contains('expanded') ? '收起' : '...展開更多';
+        }
 
-function openPostModal() {
-  document.getElementById('postModal').classList.add('show');
-}
-function closePostModal() {
-  document.getElementById('postModal').classList.remove('show');
-  document.querySelectorAll('.crowd-btn').forEach(b=>{ b.classList.remove('selected','green','yellow','red'); });
-}
-function selectCrowd(el, cls) {
-  document.querySelectorAll('.crowd-btn').forEach(b=>{ b.classList.remove('selected','green','yellow','red'); });
-  el.classList.add('selected', cls);
-}
-function submitPost() {
-  closePostModal();
-  const list = document.querySelector('.msg-list');
-  const card = document.createElement('div');
-  card.className = 'msg-card';
-  card.style.animation = 'fadeSlideIn 0.4s var(--spring)';
-  card.innerHTML = `
-    <div class="msg-top">
-      <div class="msg-avatar">👤</div>
-      <div class="msg-meta">
-        <div class="msg-author">我的回報</div>
-        <div class="msg-time">剛剛</div>
-      </div>
-      <div class="msg-station-tag blue">已發布</div>
-    </div>
-    <div class="msg-body">感謝您的回報！系統將使用此資料進行模型收斂。</div>
-    <div class="msg-footer">
-      <button class="msg-delete-btn" onclick="deleteMsg(this)">🗑 刪除</button>
-    </div>
-  `;
-  list.insertBefore(card, list.firstChild);
-}
+        function toggleLike(postId) {
+            if (!state.currentUser) return openModal('auth-modal');
+            
+            let posts = db.get('posts');
+            let post = posts.find(p => p.postId === postId);
+            if (!post) return;
 
-function deleteMsg(el) {
-  const card = el.closest('.msg-card');
-  card.style.animation = 'msgSlideOut 0.35s var(--ease) forwards';
-  setTimeout(()=>card.remove(), 350);
-}
+            const idx = post.likes.indexOf(state.currentUser.id);
+            if (idx > -1) {
+                post.likes.splice(idx, 1); // Unlike
+            } else {
+                post.likes.push(state.currentUser.id); // Like
+            }
 
-// 【已修改】回報按鈕點擊後切換至確認選項
-function reportAccuracy() {
-  const btn = document.getElementById('report-btn');
-  if(btn.style.display === 'none') return;
-  btn.style.display = 'none';
-  document.getElementById('report-choice').style.display = 'block';
-  document.getElementById('report-choice').style.animation = 'fadeSlideIn 0.3s var(--spring)';
-}
+            db.set('posts', posts);
+            
+            // Re-render current view to reflect changes simply
+            if(state.currentView === 'feed-view') renderFeed();
+            if(state.currentView === 'profile-view') renderProfile();
+        }
 
-// 【已修改】回報完畢即以動畫滑出並完全消失，不保留回報完成卡片
-function reportAnswer(isMatch) {
-  const wrap = document.getElementById('report-wrap');
-  wrap.style.animation = 'msgSlideOut 0.35s var(--ease) forwards';
-  setTimeout(()=>{
-    wrap.style.display = 'none';
-  }, 350);
-}
+        /* ================= Post Creation ================= */
+        async function previewImage(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('image-preview');
+            if(file) {
+                const base64 = await getBase64(file);
+                preview.src = base64;
+                preview.style.display = 'block';
+                // Attach to form dataset for easy access
+                document.getElementById('new-post-form').dataset.img = base64;
+            } else {
+                preview.style.display = 'none';
+                document.getElementById('new-post-form').dataset.img = '';
+            }
+        }
 
-function likeMsg(el) {
-  const num = parseInt(el.textContent.match(/\d+/)[0]) + 1;
-  el.textContent = `❤️ ${num} 覺得準確`;
-  el.style.color = 'var(--red)';
-  el.style.transform = 'scale(1.1)';
-  setTimeout(()=>{ el.style.transform = 'scale(1)'; }, 200);
-}
+        function handleNewPost(e) {
+            e.preventDefault();
+            const region = document.getElementById('post-region').value;
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            const imageBase64 = document.getElementById('new-post-form').dataset.img || "";
 
-function toggleSwitch(el) {
-  el.classList.toggle('on');
-}
+            const newPost = {
+                postId: generateId(),
+                authorId: state.currentUser.id,
+                authorName: state.currentUser.name,
+                region,
+                title,
+                content,
+                imageBase64,
+                likes: [],
+                createdAt: Date.now()
+            };
 
-// Init
-renderSchedule(stations[2].schedules);
-</script>
+            let posts = db.get('posts');
+            posts.push(newPost);
+            db.set('posts', posts);
 
-<style>
-@keyframes fadeSlideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-</style>
+            // Navigate back and show newly created post
+            state.feedFilter = region; // Set filter to where they posted
+            navigate('feed-view');
+        }
+
+        /* ================= Comments ================= */
+        function toggleComments(postId) {
+            const section = document.getElementById(`comments-${postId}`);
+            if(section.style.display === 'block') {
+                section.style.display = 'none';
+            } else {
+                section.style.display = 'block';
+                renderComments(postId);
+            }
+        }
+
+        function renderComments(postId) {
+            const cList = document.getElementById(`clist-${postId}`);
+            const comments = db.get('comments')
+                               .filter(c => c.postId === postId)
+                               .sort((a,b) => a.createdAt - b.createdAt);
+            
+            cList.innerHTML = comments.map(c => `
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <span class="comment-author">${c.authorName} <span class="mono" style="color:var(--text-muted);font-weight:normal;font-size:0.8rem;">@${c.authorId}</span></span>
+                        <span class="mono" style="color:var(--text-muted);">${formatRelativeTime(c.createdAt)}</span>
+                    </div>
+                    <div class="comment-text">${c.content}</div>
+                </div>
+            `).join('');
+
+            document.getElementById(`comment-count-${postId}`).innerText = comments.length;
+        }
+
+        function addComment(e, postId) {
+            e.preventDefault();
+            if (!state.currentUser) return;
+
+            const input = document.getElementById(`cinput-${postId}`);
+            const content = input.value.trim();
+            if(!content) return;
+
+            const newComment = {
+                commentId: generateId(),
+                postId: postId,
+                authorId: state.currentUser.id,
+                authorName: state.currentUser.name,
+                content: content,
+                createdAt: Date.now()
+            };
+
+            let comments = db.get('comments');
+            comments.push(newComment);
+            db.set('comments', comments);
+
+            input.value = '';
+            renderComments(postId);
+        }
+
+        /* ================= Modals ================= */
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id, e) {
+            if(e && e.target.id !== id && !e.target.classList.contains('close-trigger')) return;
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            openModal('lightbox-modal');
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
 </body>
 </html>
